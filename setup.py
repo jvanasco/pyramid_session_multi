@@ -37,7 +37,7 @@ setup(
         "Programming Language :: Python",
         "License :: OSI Approved :: MIT License",
     ],
-    keywords="web pyramid beaker",
+    keywords="web pyramid session",
     packages=['pyramid_session_multi'],
     author="Jonathan Vanasco",
     author_email="jonathan@findmeon.com",
@@ -47,5 +47,5 @@ setup(
     zip_safe=False,
     tests_require = requires,
     install_requires = requires,
-    test_suite='tests',
+    test_suite='pyramid_session_multi.tests',
 )
