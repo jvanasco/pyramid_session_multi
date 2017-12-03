@@ -29,6 +29,17 @@ Note how the second argument to `pyramid_session_multi.register_session_factory`
 
 Instead of registering one session factory to `request.session`, the library creates a namespace `request.session_multi` and registers the session factories to namespaces provided in it.
 
+`request.session_multi` is a special dict that maps the namespace keys to sessions.  sessions are lazily created on-demand, so you won't incur any costs/cookies/backend-data until you use them.
+
+# misc
+
+There are a few "safety" checks for conflicts.
+
+1. A `pyramid.exceptions.ConfigurationError` will be raised if a namespace of session factory is null
+2. A `pyramid.exceptions.ConfigurationError` will be raised if a namespace or factory is re-used. 
+
+the **factory** can not be re-used, because that can cause conflicts with cookies or backend storage keys.
+you can use a single cookie library/type multiple times by creating a factory for each setting (see the example above, which re-uses `SignedCookieSessionFactory` twice).
 
 
 License

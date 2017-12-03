@@ -1,2 +1,8 @@
+0.0.1
+	* lazy sessions
+	* docs
+	* streamlined some configuration options
+	* conflict support
+
 0.0.0
-	initial work
+	* initial work
