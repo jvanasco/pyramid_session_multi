@@ -50,17 +50,17 @@ class SessionMultiManagerConfig(object):
         self._session_factories = {}
         self._discriminators = {}
 
-    def register_session_factory(self, namespace, session_factory, discriminators=None):
+    def register_session_factory(self, namespace, session_factory, discriminator=None):
         """
             namespace:
                 the namespace within `request.session_multi[]` for the session
             session_factory:
                 an ISession compatible factory
-            discriminators:
-                an iterable list of discriminator functions to run on the request.
-                each discriminator should accept a request and return `True` (pass) or `False`/`None` (fail)
-                if any discriminator fails, the `request.session` will be set to `None`
-                if all discriminators pass, the `request.session` will be the output of `factory(request)`
+            discriminator:
+                a discriminator function to run on the request.
+                The discriminator should accept a request and return `True` (pass) or `False`/`None` (fail)
+                if the discriminator fails, the `request.session` will be set to `None`
+                if the discriminator passes, the `request.session` will be the output of `factory(request)`
         """
         if not all((namespace, session_factory)):
             raise ConfigurationError('must register namespace and session_factory')
@@ -69,8 +69,8 @@ class SessionMultiManagerConfig(object):
         if session_factory in self._session_factories.values():
             raise ConfigurationError('session_factory `%s` (%s) already registered another namespace' % (session_factory, namespace))
         self._session_factories[namespace] = session_factory
-        if discriminators:
-            self._discriminators[namespace] = discriminators
+        if discriminator:
+            self._discriminators[namespace] = discriminator
         return True
 
 
@@ -96,11 +96,10 @@ class SessionMultiManager(dict):
             if k in self._manager_config._session_factories:
                 _session = None
                 try:
-                    _discriminators = self._manager_config._discriminators.get(k)
-                    if _discriminators:
-                        for f_discriminator in _discriminators:
-                            if not f_discriminator(self.request):
-                                raise _SessionDiscriminated()
+                    _discriminator = self._manager_config._discriminators.get(k)
+                    if _discriminator:
+                        if not _discriminator(self.request):
+                            raise _SessionDiscriminated()
                     _session = self._manager_config._session_factories[k](self.request)
                 except _SessionDiscriminated:
                     pass
@@ -154,11 +153,11 @@ def new_session_multi(request):
     return manager
 
 
-def register_session_factory(config, namespace, session_factory, discriminators=None):
+def register_session_factory(config, namespace, session_factory, discriminator=None):
     manager_config = config.registry.queryUtility(ISessionMultiManagerConfig)
     if manager_config is None:
         raise AttributeError('No session multi manager registered ')
-    manager_config.register_session_factory(namespace, session_factory, discriminators=discriminators)
+    manager_config.register_session_factory(namespace, session_factory, discriminator=discriminator)
 
 
 def includeme(config):

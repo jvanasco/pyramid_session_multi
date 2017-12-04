@@ -1,5 +1,5 @@
 0.0.5
-	* added a `discriminators` argument to session registry
+	* added a `discriminator` argument to session registry
 
 0.0.4
 	* added a `namespaces` property to list registered namespaces

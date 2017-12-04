@@ -97,7 +97,7 @@ class Test_Session(unittest.TestCase):
         self.assertIsInstance(request.session_multi['session_3'], dict)
 
 
-class Test_Discriminators(unittest.TestCase):
+class Test_Discriminator(unittest.TestCase):
 
     def setUp(self):
         request = testing.DummyRequest()
@@ -111,16 +111,16 @@ class Test_Discriminators(unittest.TestCase):
         def _f_False(_req):
             return False
         
-        discriminators_1 = (_f_True, _f_True, )  # pass
-        discriminators_2 = (_f_True, )  # pass
-        discriminators_3 = (_f_False, _f_True, )  # fail
+        discriminator_1 = _f_True  # pass
+        discriminator_2 = _f_True  # pass
+        discriminator_3 = _f_False  # fail
         
         factory_1 = SignedCookieSessionFactory('session_1', cookie_name='factory_1')
-        register_session_factory(config, 'session_1', factory_1, discriminators=discriminators_1, )
+        register_session_factory(config, 'session_1', factory_1, discriminator=discriminator_1, )
         factory_2 = SignedCookieSessionFactory('session_2', cookie_name='factory_2')
-        register_session_factory(config, 'session_2', factory_2, discriminators=discriminators_2, )
+        register_session_factory(config, 'session_2', factory_2, discriminator=discriminator_2, )
         factory_3 = SignedCookieSessionFactory('session_3', cookie_name='factory_3')
-        register_session_factory(config, 'session_3', factory_3, discriminators=discriminators_3, )
+        register_session_factory(config, 'session_3', factory_3, discriminator=discriminator_3, )
 
         # create a session_multi object
         request.session_multi = new_session_multi(request)
