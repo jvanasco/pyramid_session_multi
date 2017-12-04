@@ -1,3 +1,7 @@
+0.0.3
+	* small py3 test update
+	* attempting to access an invalid session namespace now raises `UnregisteredSession(KeyError)` instead of `KeyError`.
+
 0.0.2
 	* tests!
 

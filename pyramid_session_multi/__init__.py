@@ -12,11 +12,16 @@ from zope.interface import Interface
 # ==============================================================================
 
 
-__VERSION__ = '0.0.2'
+__VERSION__ = '0.0.3'
 
 
 # ==============================================================================
 # ==============================================================================
+
+
+class UnregisteredSession(KeyError):
+    """raised when an unregistered session is attempted access"""
+    pass
 
 
 class ISessionMultiManagerConfig(Interface):
@@ -76,7 +81,7 @@ class SessionMultiManager(dict):
         try:
             return dict.__getitem__(self, k)
         except KeyError as e:
-            raise KeyError("'%s' is not a valid session" % k)
+            raise UnregisteredSession("'%s' is not a valid session" % k)
 
     #
     # turn off some public methods

@@ -10,7 +10,10 @@ from pyramid.response import Response
 from .. import register_session_factory
 from .. import new_session_multi
 from .. import SessionMultiManager
+from .. import UnregisteredSession
 
+import sys
+PY3 = sys.version_info[0] == 3
 
 # ------------------------------------------------------------------------------
 
@@ -39,7 +42,7 @@ class Test_Session(unittest.TestCase):
         request = get_current_request()
         # this is an anonymous type, impossible to test otherwise
         self.assertIsInstance(request.session_multi, SessionMultiManager)
-        session_type_string = "<class 'pyramid.session.CookieSession'>"
+        session_type_string = "<class 'pyramid.session.BaseCookieSessionFactory.<locals>.CookieSession'>" if PY3 else "<class 'pyramid.session.CookieSession'>"
         self.assertEqual(str(type(request.session_multi['session_1'])), session_type_string)
         self.assertEqual(str(type(request.session_multi['session_2'])), session_type_string)
         self.assertEqual(str(type(request.session_multi['session_3'])), session_type_string)
@@ -47,6 +50,9 @@ class Test_Session(unittest.TestCase):
     def test_invalids(self):
         request = get_current_request()
         self.assertRaises(KeyError,
+                          lambda: request.session_multi['invalid']
+                          )
+        self.assertRaises(UnregisteredSession,
                           lambda: request.session_multi['invalid']
                           )
 

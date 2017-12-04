@@ -49,4 +49,5 @@ setup(
     zip_safe=False,
     tests_require = requires,
     install_requires = requires,
+    test_suite="pyramid_session_multi.tests",
 )
