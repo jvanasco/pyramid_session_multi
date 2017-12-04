@@ -41,6 +41,11 @@ There are a few "safety" checks for conflicts.
 the **factory** can not be re-used, because that can cause conflicts with cookies or backend storage keys.
 you can use a single cookie library/type multiple times by creating a factory for each setting (see the example above, which re-uses `SignedCookieSessionFactory` twice).
 
+# what if sessions should only run in certain situations?
+
+`register_session_factory` accepts a kwarg for `discriminators`, which can be iterable listing of functions that each expect a `request` object.
+if provided and any discriminator function returns an non-True value, the session_multi namespace will be set to None
+otherwise, the namespace will be populated with the result of the factory
 
 License
 =======

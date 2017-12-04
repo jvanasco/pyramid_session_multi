@@ -89,3 +89,48 @@ class Test_Session(unittest.TestCase):
         registered_namespaces = request.session_multi.namespaces
         for _namespace in ('session_1', 'session_2', 'session_3'):
             self.assertIn(_namespace, registered_namespaces)
+
+    def test_instantiated_correctly(self):
+        request = get_current_request()
+        self.assertIsInstance(request.session_multi['session_1'], dict)
+        self.assertIsInstance(request.session_multi['session_2'], dict)
+        self.assertIsInstance(request.session_multi['session_3'], dict)
+
+
+class Test_Discriminators(unittest.TestCase):
+
+    def setUp(self):
+        request = testing.DummyRequest()
+        self.config = testing.setUp(request=request)
+        config = self.config
+        config.include('pyramid_session_multi')
+        
+        def _f_True(_req):
+            return True
+
+        def _f_False(_req):
+            return False
+        
+        discriminators_1 = (_f_True, _f_True, )  # pass
+        discriminators_2 = (_f_True, )  # pass
+        discriminators_3 = (_f_False, _f_True, )  # fail
+        
+        factory_1 = SignedCookieSessionFactory('session_1', cookie_name='factory_1')
+        register_session_factory(config, 'session_1', factory_1, discriminators=discriminators_1, )
+        factory_2 = SignedCookieSessionFactory('session_2', cookie_name='factory_2')
+        register_session_factory(config, 'session_2', factory_2, discriminators=discriminators_2, )
+        factory_3 = SignedCookieSessionFactory('session_3', cookie_name='factory_3')
+        register_session_factory(config, 'session_3', factory_3, discriminators=discriminators_3, )
+
+        # create a session_multi object
+        request.session_multi = new_session_multi(request)
+
+    def tearDown(self):
+        testing.tearDown()
+
+    def test_instantiated_correctly(self):
+        request = get_current_request()
+        self.assertIsInstance(request.session_multi['session_1'], dict)
+        self.assertIsInstance(request.session_multi['session_2'], dict)
+        self.assertIsNone(request.session_multi['session_3'])
+
