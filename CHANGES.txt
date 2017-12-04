@@ -1,3 +1,6 @@
+0.0.4
+	* added a `namespaces` property to list registered namespaces
+
 0.0.3
 	* small py3 test update
 	* attempting to access an invalid session namespace now raises `UnregisteredSession(KeyError)` instead of `KeyError`.

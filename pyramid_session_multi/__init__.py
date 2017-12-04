@@ -2,17 +2,16 @@ import logging
 log = logging.getLogger(__name__)
 
 # pyramid
-from pyramid.decorator import reify
 from pyramid.interfaces import IDict
 from pyramid.exceptions import ConfigurationError
-from pyramid.util import action_method
+# from pyramid.util import action_method
 from zope.interface import implementer
 from zope.interface import Interface
 
 # ==============================================================================
 
 
-__VERSION__ = '0.0.3'
+__VERSION__ = '0.0.4'
 
 
 # ==============================================================================
@@ -27,8 +26,8 @@ class UnregisteredSession(KeyError):
 class ISessionMultiManagerConfig(Interface):
     """
     An interface representing a factory which accepts a `config` instance and
-    returns an ISessionMultiManagerConfig compliant object. There should be one and
-    only one ISessionMultiManagerConfig per application.
+    returns an ISessionMultiManagerConfig compliant object. There should be one
+    and only one ISessionMultiManagerConfig per application.
     """
     def __call__(config):
         """ Return an ISession object """
@@ -41,7 +40,7 @@ class SessionMultiManagerConfig(object):
     It is built up during the pyramid app configuration phase.
     It is used to create new managers on each request.
     """
-    
+
     def __init__(self, config):
         self._session_factories = {}
 
@@ -54,6 +53,7 @@ class SessionMultiManagerConfig(object):
             raise ConfigurationError('session_factory `%s` (%s) already registered another namespace' % (session_factory, namespace))
         self._session_factories[namespace] = session_factory
         return True
+
 
 @implementer(IDict)
 class SessionMultiManager(dict):
@@ -105,7 +105,11 @@ class SessionMultiManager(dict):
         _status_all = {k: False for k in self._namespaces}
         _status_loaded = {k: True for k in self}
         _status_all.update(_status_loaded)
-        return  _status_all
+        return _status_all
+
+    @property
+    def namespaces(self):
+        return self._namespaces.keys()
 
 
 # ==============================================================================
@@ -133,7 +137,7 @@ def includeme(config):
     config.registry.registerUtility(manager_config, ISessionMultiManagerConfig)
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # step 2 - setup custom `session_managed` property 
+    # step 2 - setup custom `session_managed` property
     config.add_request_method(new_session_multi,
                               'session_multi',
                               reify=True,

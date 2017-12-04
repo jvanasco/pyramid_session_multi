@@ -85,3 +85,7 @@ class Test_Session(unittest.TestCase):
         self.assertIn('session_1', request.session_multi)
         self.assertNotIn('session_2', request.session_multi)
         self.assertNotIn('session_3', request.session_multi)
+        
+        registered_namespaces = request.session_multi.namespaces
+        for _namespace in ('session_1', 'session_2', 'session_3'):
+            self.assertIn(_namespace, registered_namespaces)
