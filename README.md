@@ -24,6 +24,15 @@ Note how the second argument to `pyramid_session_multi.register_session_factory`
     request.session_multi['session1']['foo'] = "bar"
     request.session_multi['session1']['bar'] = "foo"
 
+# why?
+
+pyramid ships with support for a single session that is bound to `request.session`. that design is great for many/most web applications, but as you scale your needs may grow:
+
+* if you have a HTTP site that uses HTTPS for account management, you need to support separate sessions for HTTP and HTTPS, otherwise a "man in the middle" or network traffic spy could use HTTP cookie to access the HTTPS endpoints.
+* clientside sessions and signed cookies are usually faster, but sometimes you have data that needs to be saved serverside sessions because it has security implications (like a 3rd party oAuth token) or is too big.
+* you may have multiple interconnected apps that each need to save/share isolated bits of session data.
+
+
 # debugtoolbar support!
 
 just add to your development.ini
@@ -43,6 +52,8 @@ WARNING- the in/out functionality is supported by reading the session info WITHO
 Instead of registering one session factory to `request.session`, the library creates a namespace `request.session_multi` and registers the session factories to namespaces provided in it.
 
 `request.session_multi` is a special dict that maps the namespace keys to sessions.  sessions are lazily created on-demand, so you won't incur any costs/cookies/backend-data until you use them.
+
+this should work with most session libraries for Pyramid. pyramid's session support *mostly* just binds a session factory to the `request.session` property.  most libraries and implementations of pyramid's ISession interface act completely independent of the framework and implement of their own logic for detecting changes and deciding what to do when something changes.
 
 # misc
 
