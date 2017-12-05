@@ -2,7 +2,7 @@
 
 Provides for making ad-hoc sessions binds of ISession compliant libraries.
 
-This is just a quick first attempt.
+This was just a quick first attempt, but it's working well
 
 # usage
 
@@ -23,7 +23,20 @@ Note how the second argument to `pyramid_session_multi.register_session_factory`
 
     request.session_multi['session1']['foo'] = "bar"
     request.session_multi['session1']['bar'] = "foo"
-    
+
+# debugtoolbar support!
+
+just add to your development.ini
+
+	debugtoolbar.includes = pyramid_session_multi.debugtoolbar
+
+the debugtoolbar will now have a `SessionMulti` panel that has the following info:
+
+* configuration data on all namespaces
+* incoming request values of all available sessions
+* outgoing response values of accessed sessions (not necessarily updated)
+
+WARNING- the in/out functionality is supported by reading the session info WITHOUT binding it to the request.  for most implementations, this is fine and will go unnoticed.  some session implementations will trigger an event on the "read" of the session (such as updating a timestamp, setting callbacks, etc).  those events will be triggered by the initial read.
 
 # how does it work?
 

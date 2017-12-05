@@ -11,7 +11,7 @@ from zope.interface import Interface
 # ==============================================================================
 
 
-__VERSION__ = '0.0.5'
+__VERSION__ = '0.0.6'
 
 
 # ==============================================================================
@@ -88,21 +88,28 @@ class SessionMultiManager(dict):
             raise AttributeError('No session multi manager registered ')
         self._manager_config = manager_config
 
+    def _discriminated_session(self, k):
+        """private method. this was part of __get_item__ but was pulled out for the debugging panel
+        """
+        _session = None
+        try:
+            _discriminator = self._manager_config._discriminators.get(k)
+            if _discriminator:
+                if not _discriminator(self.request):
+                    raise _SessionDiscriminated()
+            _session = self._manager_config._session_factories[k](self.request)
+        except _SessionDiscriminated:
+            pass
+        return _session
+
     def __getitem__(self, k):
         """
         Return the value for key ``k`` from the dictionary or raise a
-        KeyError if the key doesn't exist"""
+        KeyError if the key doesn't exist
+        """
         if k not in self:
             if k in self._manager_config._session_factories:
-                _session = None
-                try:
-                    _discriminator = self._manager_config._discriminators.get(k)
-                    if _discriminator:
-                        if not _discriminator(self.request):
-                            raise _SessionDiscriminated()
-                    _session = self._manager_config._session_factories[k](self.request)
-                except _SessionDiscriminated:
-                    pass
+                _session = self._discriminated_session(k)
                 dict.__setitem__(self, k, _session)
         try:
             return dict.__getitem__(self, k)
@@ -120,25 +127,41 @@ class SessionMultiManager(dict):
         raise ValueError("May not del on a SessionMultiManager")
 
     #
-    # for debugging tools
+    # for debugging and debugging_toolbar
     #
 
+    def _debug_incoming(self):
+        """
+        this is a private method used only by the toolbar.
+        please don't rely on it.
+        this will not be supported as the toolbar may migrate to another system.
+        this simply reads all the session data into a dict, without binding it to this interface.
+        """
+        all_incoming = {k: self._discriminated_session(k)
+                        for k in self._manager_config._session_factories.keys()
+                        }
+        return all_incoming
+
     def has_namespace(self, k):
+        """is this a valid namespace/session?"""
         return True if k in self._manager_config._session_factories else False
 
     @property
     def loaded_status(self):
-        _status_all = {k: False for k in self._manager_config._session_factories}
+        """list what was loaded or not"""
+        _status_all = {k: False for k in self._manager_config._session_factories.keys()}
         _status_loaded = {k: True for k in self}
         _status_all.update(_status_loaded)
         return _status_all
 
     @property
     def namespaces(self):
+        """list all possible namespaces"""
         return self._manager_config._session_factories.keys()
 
     @property
     def discriminators(self):
+        """list all namespaces with discriminators"""
         return self._manager_config._discriminators.keys()
 
 

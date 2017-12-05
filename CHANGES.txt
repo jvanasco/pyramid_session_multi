@@ -1,3 +1,9 @@
+0.0.6
+	* added debugtoolbar support
+	** there is a debugtoolbar!
+	** there is a private method, ``_debug_incoming``, used by the toolbar
+	** discriminating a session was moved into it's own method ``_discriminated_session``
+
 0.0.5
 	* added a `discriminator` argument to session registry
 
