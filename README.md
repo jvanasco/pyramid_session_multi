@@ -47,6 +47,9 @@ the debugtoolbar will now have a `SessionMulti` panel that has the following inf
 
 WARNING- the in/out functionality is supported by reading the session info WITHOUT binding it to the request.  for most implementations, this is fine and will go unnoticed.  some session implementations will trigger an event on the "read" of the session (such as updating a timestamp, setting callbacks, etc).  those events will be triggered by the initial read.
 
+if possible, register sessions with a cookie_name paramter for the toolbar. if omitted, the manager will try to pull a name from the factory - but that is not always possible.
+
+
 # how does it work?
 
 Instead of registering one session factory to `request.session`, the library creates a namespace `request.session_multi` and registers the session factories to namespaces provided in it.

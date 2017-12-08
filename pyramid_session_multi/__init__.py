@@ -11,7 +11,7 @@ from zope.interface import Interface
 # ==============================================================================
 
 
-__VERSION__ = '0.0.6'
+__VERSION__ = '0.0.7'
 
 
 # ==============================================================================
@@ -49,18 +49,21 @@ class SessionMultiManagerConfig(object):
     def __init__(self, config):
         self._session_factories = {}
         self._discriminators = {}
+        self._cookienames = {}
 
-    def register_session_factory(self, namespace, session_factory, discriminator=None):
+    def register_session_factory(self, namespace, session_factory, discriminator=None, cookie_name=None):
         """
-            namespace:
-                the namespace within `request.session_multi[]` for the session
-            session_factory:
-                an ISession compatible factory
-            discriminator:
-                a discriminator function to run on the request.
-                The discriminator should accept a request and return `True` (pass) or `False`/`None` (fail)
-                if the discriminator fails, the `request.session` will be set to `None`
-                if the discriminator passes, the `request.session` will be the output of `factory(request)`
+        namespace:
+            the namespace within `request.session_multi[]` for the session
+        session_factory:
+            an ISession compatible factory
+        discriminator:
+            a discriminator function to run on the request.
+            The discriminator should accept a request and return `True` (pass) or `False`/`None` (fail)
+            if the discriminator fails, the `request.session` will be set to `None`
+            if the discriminator passes, the `request.session` will be the output of `factory(request)`
+        
+        # session_factory._cookie_name
         """
         if not all((namespace, session_factory)):
             raise ConfigurationError('must register namespace and session_factory')
@@ -71,6 +74,10 @@ class SessionMultiManagerConfig(object):
         self._session_factories[namespace] = session_factory
         if discriminator:
             self._discriminators[namespace] = discriminator
+        if cookie_name is None:
+            if hasattr(session_factory, '_cookie_name'):
+                cookie_name = session_factory._cookie_name
+        self._cookienames[namespace] = cookie_name
         return True
 
 
@@ -176,11 +183,11 @@ def new_session_multi(request):
     return manager
 
 
-def register_session_factory(config, namespace, session_factory, discriminator=None):
+def register_session_factory(config, namespace, session_factory, discriminator=None, cookie_name=None):
     manager_config = config.registry.queryUtility(ISessionMultiManagerConfig)
     if manager_config is None:
         raise AttributeError('No session multi manager registered ')
-    manager_config.register_session_factory(namespace, session_factory, discriminator=discriminator)
+    manager_config.register_session_factory(namespace, session_factory, discriminator=discriminator, cookie_name=cookie_name, )
 
 
 def includeme(config):

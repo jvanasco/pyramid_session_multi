@@ -1,3 +1,6 @@
+0.0.7
+    * debugging now tracks cookie names, either pass-in or derived
+
 0.0.6
 	* added debugtoolbar support
 	** there is a debugtoolbar!

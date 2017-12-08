@@ -31,14 +31,13 @@ class SessionMultiDebugPanel(DebugPanel):
             # turn this into a list...
             configuration = []
             for (namespace, discriminator) in namespace_2_discriminator.items():
-                config = [namespace, discriminator]
+                config = [namespace, request.session_multi._manager_config._cookienames.get(namespace), discriminator]
                 factory_info = request.session_multi._manager_config._session_factories[namespace]
                 config.append(factory_info)
                 configuration.append(config)
 
             # this collects all the incoming data without binding to the request
             session_data__in = request.session_multi._debug_incoming()
-
             self.data['configuration'] = configuration
             self.data['session_data']['namespaces'] = request.session_multi.namespaces
             self.data['session_data']['in'] = session_data__in

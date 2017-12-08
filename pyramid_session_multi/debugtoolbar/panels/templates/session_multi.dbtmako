@@ -30,7 +30,7 @@
 					data_out = "<pre>%s</pre>" % data_out
 			%>
 			<tr>
-				<td>${namespace}</td>
+				<th>${namespace}</th>
 				<td>${data_in|n}</td>
 				<td>${data_out|n}</td>
 			</tr>
@@ -43,14 +43,16 @@
 	<thead>
 		<tr>
 			<th>namespace</th>
+			<th>cookie_name</th>
 			<th>has discriminators?</th>
 			<th>info</th>
 		</tr>
 	</thead>
 	<tbody>
-		% for (namespace, has_discriminators, info, ) in configuration:
+		% for (namespace, cookie_name, has_discriminators, info, ) in configuration:
 			<tr>
-				<td>${namespace}</td>
+				<th>${namespace}</th>
+				<td><code>${cookie_name}</code></td>
 				<td>${has_discriminators or ''}</td>
 				<td>
 					## catch factory generators
