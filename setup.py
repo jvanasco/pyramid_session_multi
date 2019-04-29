@@ -35,6 +35,8 @@ setup(
         "Intended Audience :: Developers",
         "Framework :: Pyramid",
         "Programming Language :: Python",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
     ],
     keywords="web pyramid session",

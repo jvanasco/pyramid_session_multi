@@ -11,7 +11,7 @@ from zope.interface import Interface
 # ==============================================================================
 
 
-__VERSION__ = '0.0.7'
+__VERSION__ = '0.1.0'
 
 
 # ==============================================================================
@@ -164,12 +164,12 @@ class SessionMultiManager(dict):
     @property
     def namespaces(self):
         """list all possible namespaces"""
-        return self._manager_config._session_factories.keys()
+        return list(self._manager_config._session_factories.keys())
 
     @property
     def discriminators(self):
         """list all namespaces with discriminators"""
-        return self._manager_config._discriminators.keys()
+        return list(self._manager_config._discriminators.keys())
 
 
 # ==============================================================================

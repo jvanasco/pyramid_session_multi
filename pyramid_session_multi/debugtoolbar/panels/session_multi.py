@@ -31,7 +31,10 @@ class SessionMultiDebugPanel(DebugPanel):
             # turn this into a list...
             configuration = []
             for (namespace, discriminator) in namespace_2_discriminator.items():
-                config = [namespace, request.session_multi._manager_config._cookienames.get(namespace), discriminator]
+                config = [namespace,
+                          request.session_multi._manager_config._cookienames.get(namespace),
+                          discriminator,
+                          ]
                 factory_info = request.session_multi._manager_config._session_factories[namespace]
                 config.append(factory_info)
                 configuration.append(config)
@@ -49,8 +52,8 @@ class SessionMultiDebugPanel(DebugPanel):
 
         # this bit handles the session_multi stuff
         if hasattr(self.__request, 'session_multi'):
-            session_multi__out = self.__request.session_multi.items()
-            self.data['session_data']['out'] = dict(session_multi__out)
+            session_multi__out = dict(self.__request.session_multi.items())
+            self.data['session_data']['out'] = session_multi__out
 
     @property
     def nav_title(self):

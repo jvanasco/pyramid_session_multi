@@ -1,6 +1,5 @@
 <%!
     import pprint
-    import types
 %>
 
 <em>Note: In the table below, if `None` is a value, it means the session namespace was accessed but denied by a discriminator.  If the value is empty, then the session namespace was not accessed.</em>
