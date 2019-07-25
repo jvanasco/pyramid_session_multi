@@ -1,0 +1,4 @@
+include pyramid_session_multi/debugtoolbar/__init__.py
+include pyramid_session_multi/debugtoolbar/panels/__init__.py
+include pyramid_session_multi/debugtoolbar/panels/session_multi.py
+include pyramid_session_multi/debugtoolbar/panels/templates/session_multi.dbtmako

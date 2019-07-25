@@ -15,13 +15,6 @@ with open(
         r".*__VERSION__ = '(.*?)'",
         re.S).match(v_file.read()).group(1)
 
-try:
-    here = os.path.abspath(os.path.dirname(__file__))
-    README = open(os.path.join(here, "README.md")).read()
-    README = README.split("\n\n", 1)[0] + "\n"
-except:
-    README = ''
-
 requires = [
     "pyramid",
 ]
@@ -29,8 +22,8 @@ requires = [
 setup(
     name="pyramid_session_multi",
     version=VERSION,
-    description="provides for creating multiple adhoc session binds",
-    long_description=README,
+    description="provides a framwork for creating multiple adhoc session binds",
+    long_description="easily manage multiple sessions in your Pyramid application",
     classifiers=[
         "Intended Audience :: Developers",
         "Framework :: Pyramid",

@@ -1,3 +1,10 @@
+0.2.0
+	* use `config.add_debugtoolbar_panel` for panel registration
+	* updated tests
+
+0.1.1
+	* use `extra_panels` for panel registration
+
 0.1.0
 	* Python3
 

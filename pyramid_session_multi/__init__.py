@@ -11,7 +11,7 @@ from zope.interface import Interface
 # ==============================================================================
 
 
-__VERSION__ = '0.1.0'
+__VERSION__ = '0.2.0'
 
 
 # ==============================================================================
@@ -62,7 +62,7 @@ class SessionMultiManagerConfig(object):
             The discriminator should accept a request and return `True` (pass) or `False`/`None` (fail)
             if the discriminator fails, the `request.session` will be set to `None`
             if the discriminator passes, the `request.session` will be the output of `factory(request)`
-        
+
         # session_factory._cookie_name
         """
         if not all((namespace, session_factory)):
@@ -92,7 +92,7 @@ class SessionMultiManager(dict):
         self.request = request
         manager_config = request.registry.queryUtility(ISessionMultiManagerConfig)
         if manager_config is None:
-            raise AttributeError('No session multi manager registered ')
+            raise AttributeError('No session multi manager registered')
         self._manager_config = manager_config
 
     def _discriminated_session(self, k):
@@ -120,7 +120,7 @@ class SessionMultiManager(dict):
                 dict.__setitem__(self, k, _session)
         try:
             return dict.__getitem__(self, k)
-        except KeyError as e:
+        except KeyError as exc:
             raise UnregisteredSession("'%s' is not a valid session" % k)
 
     #
@@ -186,7 +186,7 @@ def new_session_multi(request):
 def register_session_factory(config, namespace, session_factory, discriminator=None, cookie_name=None):
     manager_config = config.registry.queryUtility(ISessionMultiManagerConfig)
     if manager_config is None:
-        raise AttributeError('No session multi manager registered ')
+        raise AttributeError('No session multi manager registered')
     manager_config.register_session_factory(namespace, session_factory, discriminator=discriminator, cookie_name=cookie_name, )
 
 
