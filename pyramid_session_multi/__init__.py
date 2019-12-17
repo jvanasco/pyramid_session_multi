@@ -1,9 +1,11 @@
 import logging
+
 log = logging.getLogger(__name__)
 
 # pyramid
 from pyramid.interfaces import IDict
 from pyramid.exceptions import ConfigurationError
+
 # from pyramid.util import action_method
 from zope.interface import implementer
 from zope.interface import Interface
@@ -11,7 +13,7 @@ from zope.interface import Interface
 # ==============================================================================
 
 
-__VERSION__ = '0.2.0'
+__VERSION__ = "0.2.1"
 
 
 # ==============================================================================
@@ -20,11 +22,13 @@ __VERSION__ = '0.2.0'
 
 class UnregisteredSession(KeyError):
     """raised when an unregistered session is attempted access"""
+
     pass
 
 
 class _SessionDiscriminated(Exception):
     """internal use only; raised when a session should not issue for a request"""
+
     pass
 
 
@@ -34,6 +38,7 @@ class ISessionMultiManagerConfig(Interface):
     returns an ISessionMultiManagerConfig compliant object. There should be one
     and only one ISessionMultiManagerConfig per application.
     """
+
     def __call__(config):
         """ Return an ISession object """
 
@@ -51,7 +56,9 @@ class SessionMultiManagerConfig(object):
         self._discriminators = {}
         self._cookienames = {}
 
-    def register_session_factory(self, namespace, session_factory, discriminator=None, cookie_name=None):
+    def register_session_factory(
+        self, namespace, session_factory, discriminator=None, cookie_name=None
+    ):
         """
         namespace:
             the namespace within `request.session_multi[]` for the session
@@ -66,16 +73,21 @@ class SessionMultiManagerConfig(object):
         # session_factory._cookie_name
         """
         if not all((namespace, session_factory)):
-            raise ConfigurationError('must register namespace and session_factory')
+            raise ConfigurationError("must register namespace and session_factory")
         if namespace in self._session_factories.keys():
-            raise ConfigurationError('namespace `%s` already registered to pyramid_session_multi' % namespace)
+            raise ConfigurationError(
+                "namespace `%s` already registered to pyramid_session_multi" % namespace
+            )
         if session_factory in self._session_factories.values():
-            raise ConfigurationError('session_factory `%s` (%s) already registered another namespace' % (session_factory, namespace))
+            raise ConfigurationError(
+                "session_factory `%s` (%s) already registered another namespace"
+                % (session_factory, namespace)
+            )
         self._session_factories[namespace] = session_factory
         if discriminator:
             self._discriminators[namespace] = discriminator
         if cookie_name is None:
-            if hasattr(session_factory, '_cookie_name'):
+            if hasattr(session_factory, "_cookie_name"):
                 cookie_name = session_factory._cookie_name
         self._cookienames[namespace] = cookie_name
         return True
@@ -92,7 +104,7 @@ class SessionMultiManager(dict):
         self.request = request
         manager_config = request.registry.queryUtility(ISessionMultiManagerConfig)
         if manager_config is None:
-            raise AttributeError('No session multi manager registered')
+            raise AttributeError("No session multi manager registered")
         self._manager_config = manager_config
 
     def _discriminated_session(self, k):
@@ -144,9 +156,10 @@ class SessionMultiManager(dict):
         this will not be supported as the toolbar may migrate to another system.
         this simply reads all the session data into a dict, without binding it to this interface.
         """
-        all_incoming = {k: self._discriminated_session(k)
-                        for k in self._manager_config._session_factories.keys()
-                        }
+        all_incoming = {
+            k: self._discriminated_session(k)
+            for k in self._manager_config._session_factories.keys()
+        }
         return all_incoming
 
     def has_namespace(self, k):
@@ -183,11 +196,15 @@ def new_session_multi(request):
     return manager
 
 
-def register_session_factory(config, namespace, session_factory, discriminator=None, cookie_name=None):
+def register_session_factory(
+    config, namespace, session_factory, discriminator=None, cookie_name=None
+):
     manager_config = config.registry.queryUtility(ISessionMultiManagerConfig)
     if manager_config is None:
-        raise AttributeError('No session multi manager registered')
-    manager_config.register_session_factory(namespace, session_factory, discriminator=discriminator, cookie_name=cookie_name, )
+        raise AttributeError("No session multi manager registered")
+    manager_config.register_session_factory(
+        namespace, session_factory, discriminator=discriminator, cookie_name=cookie_name
+    )
 
 
 def includeme(config):
@@ -198,7 +215,4 @@ def includeme(config):
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # step 2 - setup custom `session_managed` property
-    config.add_request_method(new_session_multi,
-                              'session_multi',
-                              reify=True,
-                              )
+    config.add_request_method(new_session_multi, "session_multi", reify=True)
