@@ -1,6 +1,8 @@
 0.2.1
 	* black formatting
 	* updated docs to reflect `"None"` as valid input for cookie samesite options
+	* upgraded black; 20.8b1
+	* integrated with pre-commit
 
 0.2.0
 	* use `config.add_debugtoolbar_panel` for panel registration

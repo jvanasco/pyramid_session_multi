@@ -13,7 +13,7 @@ from zope.interface import Interface
 # ==============================================================================
 
 
-__VERSION__ = "0.2.1"
+__VERSION__ = "0.2.2.dev"
 
 
 # ==============================================================================
@@ -108,8 +108,7 @@ class SessionMultiManager(dict):
         self._manager_config = manager_config
 
     def _discriminated_session(self, k):
-        """private method. this was part of __get_item__ but was pulled out for the debugging panel
-        """
+        """private method. this was part of __get_item__ but was pulled out for the debugging panel"""
         _session = None
         try:
             _discriminator = self._manager_config._discriminators.get(k)
