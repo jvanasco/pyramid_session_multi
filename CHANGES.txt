@@ -4,6 +4,7 @@
 	* upgraded black; 20.8b1
 	* integrated with pre-commit and github actions
 	* packaging fixes
+	* added a conflict check for duplicate cookie names
 
 0.2.0
 	* use `config.add_debugtoolbar_panel` for panel registration

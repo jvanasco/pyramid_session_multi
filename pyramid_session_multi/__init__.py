@@ -85,13 +85,19 @@ class SessionMultiManagerConfig(object):
                 "session_factory `%s` (%s) already registered another namespace"
                 % (session_factory, namespace)
             )
-        self._session_factories[namespace] = session_factory
-        if discriminator:
-            self._discriminators[namespace] = discriminator
         if cookie_name is None:
             if hasattr(session_factory, "_cookie_name"):
                 cookie_name = session_factory._cookie_name
+        if cookie_name in self._cookienames.values():
+            raise ConfigurationError(
+                "session_factory `%s` (%s) already registered another cookie"
+                % (session_factory, cookie_name)
+            )
+
         self._cookienames[namespace] = cookie_name
+        self._session_factories[namespace] = session_factory
+        if discriminator:
+            self._discriminators[namespace] = discriminator
         return True
 
 

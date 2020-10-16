@@ -100,7 +100,7 @@ There are a few "safety" checks for conflicts.
 1. A `pyramid.exceptions.ConfigurationError` will be raised if a namespace of
    session factory is null
 2. A `pyramid.exceptions.ConfigurationError` will be raised if a namespace or
-   factory is re-used. 
+   factory or cookie name is re-used. 
 
 The **factory** can not be re-used, because that can cause conflicts with
 cookies or backend storage keys.
@@ -108,6 +108,9 @@ cookies or backend storage keys.
 You can use a single cookie library/type multiple times by creating a factory
 for each setting (see the example above, which re-uses
 `SignedCookieSessionFactory` twice).
+
+If you do not register a factory with a `cookie_name`, this library will
+try to derive one based on a `._cooke_name` attribute.
 
 # what if sessions should only run in certain situations?
 

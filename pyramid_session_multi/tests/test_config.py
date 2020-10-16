@@ -102,6 +102,18 @@ class Test_Included(unittest.TestCase):
             factory_1,
         )
 
+    def test_configure_conflict_cookiename_fails(self):
+        factory_1 = SignedCookieSessionFactory("aaaaa", cookie_name="factory_1")
+        register_session_factory(self.config, "session_1", factory_1)
+        factory_2 = SignedCookieSessionFactory("aaaaa", cookie_name="factory_1")
+        self.assertRaises(
+            ConfigurationError,
+            register_session_factory,
+            self.config,
+            "session_2",
+            factory_2,
+        )
+
 
 class TestDebugtoolbarPanel(unittest.TestCase):
     def setUp(self):
@@ -169,7 +181,7 @@ class TestDebugtoolbarPanel(unittest.TestCase):
         register_session_factory(self.config, "session1", session_factory_1)
 
         session_factory_2 = SignedCookieSessionFactory(
-            "secret2", cookie_name="session1"
+            "secret2", cookie_name="session2"
         )
         register_session_factory(self.config, "session2", session_factory_2)
 
