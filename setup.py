@@ -13,12 +13,21 @@ with open(
 ) as v_file:
     VERSION = re.compile(r'.*__VERSION__ = "(.*?)"', re.S).match(v_file.read()).group(1)
 
-requires = ["pyramid"]
+# pyramid 1.5 == SignedCookieSessionFactory
+requires = [
+    "pyramid>=1.5",
+    "zope.interface",  # installed by pyramid
+]
+tests_require = [
+    "pytest",
+    "pyramid_debugtoolbar>=4.0",
+]
+testing_extras = tests_require + []
 
 setup(
     name="pyramid_session_multi",
     version=VERSION,
-    description="provides a framwork for creating multiple adhoc session binds",
+    description="Provides a framwork for creating multiple adhoc session binds in Pyramid",
     long_description="easily manage multiple sessions in your Pyramid application",
     classifiers=[
         "Intended Audience :: Developers",
@@ -36,7 +45,10 @@ setup(
     license="MIT",
     include_package_data=True,
     zip_safe=False,
-    tests_require=requires,
     install_requires=requires,
+    tests_require=requires,
+    extras_require={
+        "testing": testing_extras,
+    },
     test_suite="pyramid_session_multi.tests",
 )
