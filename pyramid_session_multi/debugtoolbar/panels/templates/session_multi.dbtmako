@@ -54,7 +54,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			% for (namespace, cookie_name, has_discriminators, info, ) in configuration:
+			% for (namespace, cookie_name, has_discriminators, info, ) in sorted(configuration, key=lambda _cookie: _cookie[1]):
 				<tr>
 					<th>${namespace}</th>
 					<td><code>${cookie_name}</code></td>

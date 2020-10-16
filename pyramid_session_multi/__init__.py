@@ -66,9 +66,11 @@ class SessionMultiManagerConfig(object):
             an ISession compatible factory
         discriminator:
             a discriminator function to run on the request.
-            The discriminator should accept a request and return `True` (pass) or `False`/`None` (fail)
-            if the discriminator fails, the `request.session` will be set to `None`
-            if the discriminator passes, the `request.session` will be the output of `factory(request)`
+            The discriminator should accept a request and return `True` (pass)
+            or `False`/`None` (fail).
+            if the discriminator fails, the `request.session` will be set to `None`.
+            if the discriminator passes, the `request.session` will be the output
+            of `factory(request)`
 
         # session_factory._cookie_name
         """
@@ -97,7 +99,8 @@ class SessionMultiManagerConfig(object):
 class SessionMultiManager(dict):
     """
     This is the per-request multiple session interface.
-    It is mounted onto the request, and creates ad-hoc sessions on the mountpoints as needed.
+    It is mounted onto the request, and creates ad-hoc sessions on the
+    mountpoints as needed.
     """
 
     def __init__(self, request):
@@ -108,7 +111,10 @@ class SessionMultiManager(dict):
         self._manager_config = manager_config
 
     def _discriminated_session(self, k):
-        """private method. this was part of __get_item__ but was pulled out for the debugging panel"""
+        """
+        private method. this was part of __get_item__ but was pulled out
+        for the debugging panel
+        """
         _session = None
         try:
             _discriminator = self._manager_config._discriminators.get(k)
@@ -153,7 +159,8 @@ class SessionMultiManager(dict):
         this is a private method used only by the toolbar.
         please don't rely on it.
         this will not be supported as the toolbar may migrate to another system.
-        this simply reads all the session data into a dict, without binding it to this interface.
+        this simply reads all the session data into a dict, without binding it
+        to this interface.
         """
         all_incoming = {
             k: self._discriminated_session(k)
