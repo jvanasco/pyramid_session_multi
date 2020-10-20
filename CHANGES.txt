@@ -1,3 +1,6 @@
+0.2.4
+	packaging fix
+
 0.2.2
 	* black formatting
 	* updated docs to reflect `"None"` as valid input for cookie samesite options

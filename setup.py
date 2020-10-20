@@ -1,4 +1,4 @@
-"""pyramid_sessionlike installation script.
+"""pyramid_session_multi installation script.
 """
 import os
 
@@ -8,9 +8,15 @@ from setuptools import find_packages
 # store version in the init.py
 import re
 
-with open(
-    os.path.join(os.path.dirname(__file__), "pyramid_session_multi", "__init__.py")
-) as v_file:
+HERE = os.path.dirname(__file__)
+
+long_description = (
+    description
+) = "Provides a framwork for creating multiple adhoc session binds in Pyramid."
+with open(os.path.join(HERE, "README.md")) as r_file:
+    long_description = r_file.read()
+
+with open(os.path.join(HERE, "pyramid_session_multi", "__init__.py")) as v_file:
     VERSION = re.compile(r'.*__VERSION__ = "(.*?)"', re.S).match(v_file.read()).group(1)
 
 # pyramid 1.5 == SignedCookieSessionFactory
@@ -27,8 +33,9 @@ testing_extras = tests_require + []
 setup(
     name="pyramid_session_multi",
     version=VERSION,
-    description="Provides a framwork for creating multiple adhoc session binds in Pyramid",
-    long_description="easily manage multiple sessions in your Pyramid application",
+    description=description,
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     classifiers=[
         "Intended Audience :: Developers",
         "Framework :: Pyramid",
@@ -37,7 +44,7 @@ setup(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
     ],
-    keywords="web pyramid session",
+    keywords="pyramid session web",
     packages=["pyramid_session_multi", "pyramid_session_multi.tests"],
     author="Jonathan Vanasco",
     author_email="jonathan@findmeon.com",
