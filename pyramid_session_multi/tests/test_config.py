@@ -159,19 +159,13 @@ class TestDebugtoolbarPanel(unittest.TestCase):
         resp2 = req2.get_response(app)
         self.assertEqual(resp2.status_code, 200)
 
-        self.assertIn('<li class="" id="pDebugPanel-SessionMulti">', resp2.text)
+        self.assertIn('<li class="" id="pDebugPanel-session_multi">', resp2.text)
         self.assertIn(
-            '<div id="pDebugPanel-SessionMulti-content" class="panelContent"',
+            '<div id="pDebugPanel-session_multi-content" class="panelContent"',
             resp2.text,
         )
         self.assertIn('<div class="pDebugPanelTitle">', resp2.text)
         self.assertIn("<h3>SessionMulti</h3>", resp2.text)
-
-        # this is configured badly on purpose
-        self.assertIn(
-            "No configuration detected. The package has not been configured properly.",
-            resp2.text,
-        )
 
     def test_panel_injected__configured(self):
 
@@ -206,17 +200,10 @@ class TestDebugtoolbarPanel(unittest.TestCase):
         resp2 = req2.get_response(app)
         self.assertEqual(resp2.status_code, 200)
 
-        self.assertIn('<li class="" id="pDebugPanel-SessionMulti">', resp2.text)
+        self.assertIn('<li class="" id="pDebugPanel-session_multi">', resp2.text)
         self.assertIn(
-            '<div id="pDebugPanel-SessionMulti-content" class="panelContent"',
+            '<div id="pDebugPanel-session_multi-content" class="panelContent"',
             resp2.text,
         )
         self.assertIn('<div class="pDebugPanelTitle">', resp2.text)
         self.assertIn("<h3>SessionMulti</h3>", resp2.text)
-
-        # this one was configured
-        # note that Python2 and Python3 show a different class for the session cookie
-        self.assertIn(
-            '\t<table class="table table-striped table-condensed">\n\t\t<thead>\n\t\t\t<tr>\n\t\t\t\t<th>namespace</th>\n\t\t\t\t<th>cookie_name</th>\n\t\t\t\t<th>has discriminators?</th>\n\t\t\t\t<th>info</th>\n\t\t\t</tr>\n\t\t</thead>\n\t\t<tbody>\n\t\t\t\t<tr>\n\t\t\t\t\t<th>session1</th>\n\t\t\t\t\t<td><code>session1</code></td>\n\t\t\t\t\t<td></td>\n\t\t\t\t\t<td>\n\t\t\t\t\t\t\t&lt;class &#39;pyramid.session',
-            resp2.text,
-        )

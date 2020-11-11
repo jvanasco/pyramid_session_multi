@@ -1,74 +1,114 @@
-<%!
-    import pprint
-%>
-
-<em>Note: In the table below, if `None` is a value, it means the session namespace was accessed but denied by a discriminator.  If the value is empty, then the session namespace was not accessed.</em>
-<table class="table table-striped table-condensed">
-	<thead>
-		<tr>
-			<th>namespace</th>
-			<th>in</th>
-			<th>out</th>
-		</tr>
-	</thead>
-	<tbody>
-		% for namespace in sorted(session_data['namespaces']):
-			<%
-				## this looks halfassed, but not all session implementations will pformat as-is
-			
-				data_in = session_data['in'].get(namespace, '')
-				if data_in is not '':
-					if data_in:
-						data_in = pprint.pformat(dict(data_in.items()))
-					data_in = "<pre>%s</pre>" % data_in
-
-				data_out = session_data['out'].get(namespace, '')
-				if data_out is not '':
-					if data_out:
-						data_out = pprint.pformat(dict(data_out.items()))
-					data_out = "<pre>%s</pre>" % data_out
-			%>
-			<tr>
-				<th>${namespace}</th>
-				<td>${data_in|n}</td>
-				<td>${data_out|n}</td>
-			</tr>
-		% endfor
-	</tbody>
-</table>
-
-<h4>Configuration</h4>
-% if not configuration:
-	<div class="alert alert-danger">
-		<b>Error</b>
-		No configuration detected. The package has not been configured properly.
-	</div>
-% else:
+<h5>SessionMulti Configuration</h5>
+% if configuration:
+	<p>Using `ISessionMultiConfiguration`: <code>${configuration["config"]}</code></p>
+	<h6>Namespaces</h6>
 	<table class="table table-striped table-condensed">
 		<thead>
 			<tr>
-				<th>namespace</th>
-				<th>cookie_name</th>
-				<th>has discriminators?</th>
-				<th>info</th>
+				<th>Namespace</th>
+				<th>Cookiename</th>
+				<th>Config</th>
 			</tr>
 		</thead>
 		<tbody>
-			% for (namespace, cookie_name, has_discriminators, info, ) in sorted(configuration):
+			% for ns in configuration["namespaces"]:
 				<tr>
-					<th>${namespace}</th>
-					<td><code>${cookie_name}</code></td>
-					<td>${has_discriminators or ''}</td>
-					<td>
-						## catch factory generators
-						% if hasattr(info, '__code__'):
-							${info.__code__}
-						% else:
-							${info}
-						% endif
-					</td>
+					<td><code>${ns}</code></td>
+					<td><code>${configuration["cookies"][ns]}</code></td>
+					<td>${configuration["namespaces"][ns]}</td>
 				</tr>
 			% endfor
 		</tbody>
 	</table>
+% else:
+	<p>No `ISessionMultiConfiguration` Configured</p>
+% endif
+
+
+## Panel Active
+% if is_active:
+	<p>This panel <span class="label label-success">was active</span> for this
+	request, and will always display the "SessionMulti" data -- even if 
+	`.session` was not accessed during the request.
+	This behavior can be toggled with the Panel Settings.</p>
+% else:
+	<p>This panel <span class="label label-danger">was not active</span> for this
+	request, and will only display the "SessionMulti" data if `.session`
+	was accessed during the request.
+	This behavior can be toggled with the Panel Settings.</p>
+% endif
+
+
+## <h5>Documentation Links</h5>
+
+
+
+% if configuration:
+	<h5>Session Accessed</h5>
+	<table class="table table-striped table-condensed">
+	% for ns in session_accessed:
+		<tr>
+			<td>`request.session_multi["${ns}"]`</td>
+			<td>
+				% if session_accessed[ns]["main"]:
+					<span class="label label-success">accessed during the main `Request` handler</span>
+				% else:
+					<span class="label label-warning">not accessed during the main `Request` handler</span>
+				% endif:
+			</td>
+		</tr>
+	% endfor
+	</table>
+
+
+	<h5>Session Data</h5>
+	% for ns in session_data:
+		% if session_data[ns]["keys"]:
+			<h6>Namespace: <code>${ns}</code></h6>
+
+			<table class="table table-striped table-condensed">
+				<thead>
+					<tr>
+						<th>key</th>
+						<th>ingress</th>
+						<th>egress</th>
+					</tr>
+				</thead>
+				<tbody>
+					<%
+						try:
+							keys = sorted(session_data[ns]["keys"])
+						except TypeError:
+							keys = sorted(session_data[ns]["keys"], key=lambda k: str(k))
+					%>
+					% for k in keys:
+						<tr>
+							<th>
+								% if k in session_data[ns]["changed"]:
+									<span class="label label-info">!</span>
+								% else:
+									<span class="label">&nbsp;</span>
+								% endif
+								&nbsp;
+								${k}
+							</th>
+							<td>
+								<% v = session_data[ns]["ingress"].get(k, NotInSession) %>
+								% if v is not NotInSession:
+									<code>${v|n}</code>
+								% endif
+							</td>
+							<td>
+								<% v = session_data[ns]["egress"].get(k, NotInSession) %>
+								% if v is not NotInSession:
+									<code>${v|n}</code>
+								% endif
+							</td>
+						</tr>
+					% endfor
+				</tbody>
+			</table>
+			<hr/>
+		% endif
+	% endfor
 % endif

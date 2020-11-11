@@ -5,11 +5,11 @@ Build Status: ![Python package](https://github.com/jvanasco/pyramid_session_mult
 Provides for making multiple ad-hoc binds of `ISession` compliant sessions onto
 a `request.session_multi` namespace
 
-This was just a quick first attempt, but it's working well!
+# Usage
 
-# usage
-
-include pyramid_session_multi, then register some factories
+Include `pyramid_session_multi`, then register some `ISessionFactory` factories
+that are compliant with the `ISession` interface -- just like you would with 
+Pyramid's built-in `.session` system:
 
     def main(global_config, **settings):
         config = Configurator(settings=settings)
