@@ -3,7 +3,8 @@ import types
 
 # pyramid
 from pyramid_debugtoolbar.panels import DebugPanel
-from pyramid_debugtoolbar.utils import dictrepr
+
+# from pyramid_debugtoolbar.utils import dictrepr
 import zope.interface.interfaces
 
 # local
@@ -11,6 +12,27 @@ from ... import ISessionMultiManagerConfig
 
 
 # ==============================================================================
+
+
+def dictrepr(d):
+    """
+    a sort-safe version of pyramid_debugtoolbar.utils.dictrepr`
+        from pyramid_debugtoolbar.utils import dictrepr
+
+    consider migrating to the upstream library when fixed
+    this will require version pinning.
+    """
+    out = {}
+    for val in d:
+        try:
+            out[val] = repr(d[val])
+        except Exception:
+            # defensive
+            out[val] = "<unknown>"
+    try:
+        return sorted(out.items())
+    except TypeError:
+        return sorted(out.items(), key=lambda k: str(k))
 
 
 _ = lambda x: x
