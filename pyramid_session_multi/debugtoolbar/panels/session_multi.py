@@ -1,9 +1,16 @@
-import zope.interface.interfaces
+# stdlib
+import types
 
+# pyramid
 from pyramid_debugtoolbar.panels import DebugPanel
 from pyramid_debugtoolbar.utils import dictrepr
+import zope.interface.interfaces
 
+# local
 from ... import ISessionMultiManagerConfig
+
+
+# ==============================================================================
 
 
 _ = lambda x: x
@@ -30,9 +37,10 @@ class SessionMultiDebugPanel(DebugPanel):
     def has_content(self):
         """
         This is too difficult to figure out under the following parameters:
-        * do not trigger the ``ISession`` interface
+
+        * Do not trigger the ``ISession`` interface.
         * The toolbar consults this attibute relatively early in the lifecycle
-          to determine if ``.is_active`` should be ``True``
+          to determine if ``.is_active`` should be ``True``.
         """
         return True
 
@@ -41,7 +49,7 @@ class SessionMultiDebugPanel(DebugPanel):
 
     def __init__(self, request):
         """
-        Initial setup of the `data` payload
+        Initial setup of the `data` payload.
         """
 
         self.data = data = {
@@ -71,7 +79,6 @@ class SessionMultiDebugPanel(DebugPanel):
                 data["configuration"]["namespaces"][
                     namespace
                 ] = config.get_namespace_config(namespace)
-                _cookiename = config.get_namespace_config(namespace)
                 data["configuration"]["cookies"][
                     namespace
                 ] = config.get_namespace_cookiename(namespace)
@@ -234,16 +241,23 @@ class SessionMultiDebugPanel(DebugPanel):
             if session_multi is not None:
                 data["session_multi_accessed"]["main"] = _accessed_main
 
-                for namespace in session_multi:
+                for (namespace, session) in session_multi.items():
+
+                    if isinstance(session, types.FunctionType):
+                        # skip wrapped loaders on egress if we haven't touched
+                        # them yet
+                        if not self.is_active:
+                            continue
 
                     # accessing the session will grab it
-                    _accessed_main_ns = data["session_accessed"][namespace]["main"]
+                    _accessed_ns = data["session_accessed"][namespace]["main"]
 
                     # grab the session
+                    # which can instantiate a session and affect 'accessed'
                     session = session_multi[namespace]
 
                     # process it
                     _process_namespace(namespace, session)
 
                     # move this value back in
-                    data["session_accessed"][namespace]["main"] = _accessed_main_ns
+                    data["session_accessed"][namespace]["main"] = _accessed_ns

@@ -1,7 +1,4 @@
-import logging
-
-log = logging.getLogger(__name__)
-
+# stdlib
 import types
 
 # pyramid
@@ -9,8 +6,6 @@ from pyramid.decorator import reify
 from pyramid.interfaces import IDict
 from pyramid.exceptions import ConfigurationError
 from pyramid.util import InstancePropertyMixin
-
-# from pyramid.util import action_method
 from zope.interface import implementer
 from zope.interface import Interface
 from zope.interface import Attribute
@@ -19,11 +14,10 @@ from zope.interface import Attribute
 # ==============================================================================
 
 
-__VERSION__ = "0.3.0dev0"
+__VERSION__ = "0.3.0dev"
 
 
-# ==============================================================================
-# ==============================================================================
+# ------------------------------------------------------------------------------
 
 
 class UnregisteredSession(KeyError):
@@ -240,9 +234,6 @@ class SessionMultiManager(dict, InstancePropertyMixin):
             self[namespace].invalidate()
 
 
-# ==============================================================================
-
-
 def new_session_multi(request):
     """
     this is turned into a reified request property
@@ -263,11 +254,9 @@ def register_session_factory(
 
 
 def includeme(config):
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Step 1 - set up a ``SessionMultiManagerConfig``
     manager_config = SessionMultiManagerConfig(config)
     config.registry.registerUtility(manager_config, ISessionMultiManagerConfig)
 
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Step 2 - setup custom `session_managed` property
     config.add_request_method(new_session_multi, "session_multi", reify=True)

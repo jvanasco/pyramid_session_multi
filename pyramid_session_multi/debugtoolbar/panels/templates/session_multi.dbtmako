@@ -48,8 +48,8 @@
 	<table class="table table-striped table-condensed">
 	% for ns in session_accessed:
 		<tr>
-			<td>`request.session_multi["${ns}"]`</td>
 			<td>
+				<code>request.session_multi["${ns}"]</code>
 				% if session_accessed[ns]["main"]:
 					<span class="label label-success">accessed during the main `Request` handler</span>
 				% else:

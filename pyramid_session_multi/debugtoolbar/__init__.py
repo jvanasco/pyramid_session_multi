@@ -1,4 +1,8 @@
+# local
 from .panels.session_multi import SessionMultiDebugPanel
+
+
+# ==============================================================================
 
 
 def includeme(config):
