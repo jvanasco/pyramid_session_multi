@@ -45,7 +45,7 @@ setup(
         "License :: OSI Approved :: MIT License",
     ],
     keywords="pyramid session web",
-    packages=["pyramid_session_multi", "pyramid_session_multi.tests"],
+    packages=["pyramid_session_multi"],
     author="Jonathan Vanasco",
     author_email="jonathan@findmeon.com",
     url="https://github.com/jvanasco/pyramid_session_multi",
@@ -57,5 +57,5 @@ setup(
     extras_require={
         "testing": testing_extras,
     },
-    test_suite="pyramid_session_multi.tests",
+    test_suite="tests",
 )

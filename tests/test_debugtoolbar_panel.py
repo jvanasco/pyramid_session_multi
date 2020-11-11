@@ -274,15 +274,15 @@ class _TestDebugtoolbarPanel(unittest.TestCase):
         for namespace in self.sessions_enabled:
             if namespace in sessions_accessed:
                 self.assertIn(
-                    """<code>request.session_multi["%s"]</code>
-                    <span class="label label-success">accessed during the main `Request` handler</span>"""
+                    """<code>request.session_multi["%s"]</code>\n\t\t\t\t\t"""
+                    """<span class="label label-success">accessed during the main `Request` handler</span>"""
                     % namespace,
                     resp.text,
                 )
             else:
                 self.assertIn(
-                    """<code>request.session_multi["%s"]</code>
-                    <span class="label label-warning">not accessed during the main `Request` handler</span>"""
+                    """<code>request.session_multi["%s"]</code>\n\t\t\t\t\t"""
+                    """<span class="label label-warning">not accessed during the main `Request` handler</span>"""
                     % namespace,
                     resp.text,
                 )
