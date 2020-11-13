@@ -1,11 +1,10 @@
 # stdlib
-import types
+from types import FunctionType
 
 # pyramid
 from pyramid.decorator import reify
 from pyramid.interfaces import IDict
 from pyramid.exceptions import ConfigurationError
-from pyramid.util import InstancePropertyMixin
 from zope.interface import implementer
 from zope.interface import Interface
 from zope.interface import Attribute
@@ -14,7 +13,7 @@ from zope.interface import Attribute
 # ==============================================================================
 
 
-__VERSION__ = "0.3.0"
+__VERSION__ = "0.3.1"
 
 
 # ------------------------------------------------------------------------------
@@ -161,7 +160,7 @@ class SessionMultiManagerConfig(object):
 
 
 @implementer(IDict)
-class SessionMultiManager(dict, InstancePropertyMixin):
+class SessionMultiManager(dict):
     """
     This is the per-request multiple session interface.
     It is mounted onto the request, and creates ad-hoc sessions on the
@@ -203,7 +202,7 @@ class SessionMultiManager(dict, InstancePropertyMixin):
                 return session
         try:
             session = dict.__getitem__(self, namespace)
-            if isinstance(session, types.FunctionType):
+            if isinstance(session, FunctionType):
                 # this can happen if the debugtoolbar panel wraps the session
                 session = session()
                 dict.__setitem__(self, namespace, session)

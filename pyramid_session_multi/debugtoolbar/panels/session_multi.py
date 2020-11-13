@@ -1,5 +1,5 @@
 # stdlib
-import types
+from types import FunctionType
 
 # pyramid
 from pyramid_debugtoolbar.panels import DebugPanel
@@ -282,7 +282,7 @@ class SessionMultiDebugPanel(DebugPanel):
 
                 for (namespace, session) in session_multi.items():
 
-                    if isinstance(session, types.FunctionType):
+                    if isinstance(session, FunctionType):
                         # skip wrapped loaders on egress if we haven't touched
                         # them yet
                         if not self.is_active:

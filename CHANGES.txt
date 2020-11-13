@@ -1,5 +1,14 @@
+0.3.1
+	removed redundant code
+	small optimization of imports
+
 0.3.0
 	improved debugtoolbar support
+	raise ConfigurationError when a cookie name can not be discerned
+	updated Interface for ISessionMultiManagerConfig
+	updated and clarified methods on SessionMultiManagerConfig
+	updated and clarified methods on SessionMultiManager
+	improved tests
 
 0.2.4
 	packaging fix
