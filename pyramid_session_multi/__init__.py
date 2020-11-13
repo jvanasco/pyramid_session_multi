@@ -59,9 +59,11 @@ class ISessionMultiManagerConfig(Interface):
         :param cookie_name: stashed as `_cookie_name`
         """
 
+    discriminators = Attribute("""list all namespaces with discriminators""")
+
     namespaces = Attribute("""list all possible namespaces""")
 
-    discriminators = Attribute("""list all namespaces with discriminators""")
+    namespaces_to_cookienames = Attribute("""dict of namespaces to cookienames""")
 
     def has_namespace(self, namespace):
         """is this a valid namespace/session?"""
@@ -71,6 +73,9 @@ class ISessionMultiManagerConfig(Interface):
 
     def get_namespace_cookiename(self, namespace):
         """get the namespace cookiename"""
+
+    def get_namespace_discriminator(self, namespace):
+        """get the namespace discriminator"""
 
 
 @implementer(ISessionMultiManagerConfig)
@@ -123,14 +128,19 @@ class SessionMultiManagerConfig(object):
         return True
 
     @property
+    def discriminators(self):
+        """list all namespaces with discriminators"""
+        return list(self._discriminators.keys())
+
+    @property
     def namespaces(self):
         """list all possible namespaces"""
         return list(self._session_factories.keys())
 
     @property
-    def discriminators(self):
-        """list all namespaces with discriminators"""
-        return list(self._discriminators.keys())
+    def namespaces_to_cookienames(self):
+        """dict of namespaces to cookienames"""
+        return dict(self._cookienames)
 
     def has_namespace(self, namespace):
         """is this a valid namespace/session?"""
@@ -143,6 +153,10 @@ class SessionMultiManagerConfig(object):
     def get_namespace_cookiename(self, namespace):
         """get the namespace cookiename"""
         return self._cookienames.get(namespace, None)
+
+    def get_namespace_discriminator(self, namespace):
+        """get the namespace discriminator"""
+        return self._discriminators.get(namespace, None)
 
 
 @implementer(IDict)
@@ -207,14 +221,19 @@ class SessionMultiManager(dict, InstancePropertyMixin):
         raise ValueError("May not `del` on a `SessionMultiManager`")
 
     @reify
-    def namespaces(self):
-        """list all possible namespaces"""
-        return self._manager_config.namespaces
-
-    @reify
     def discriminators(self):
         """list all namespaces with discriminators"""
         return self._manager_config.discriminators
+
+    @reify
+    def namespaces_to_cookienames(self):
+        """dict of namespaces to cookienames"""
+        return self._manager_config.namespaces_to_cookienames
+
+    @reify
+    def namespaces(self):
+        """list all possible namespaces"""
+        return self._manager_config.namespaces
 
     def has_namespace(self, namespace):
         """is this a valid namespace/session?"""
@@ -227,6 +246,10 @@ class SessionMultiManager(dict, InstancePropertyMixin):
     def get_namespace_cookiename(self, namespace):
         """get the namespace cookiename"""
         return self._manager_config.get_namespace_cookiename(namespace)
+
+    def get_namespace_discriminator(self, namespace):
+        """get the namespace discriminator"""
+        return self._manager_config.get_discriminator(namespace)
 
     def invalidate(self):
         """invalidate all possible namespaces"""

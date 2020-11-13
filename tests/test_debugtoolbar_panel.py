@@ -8,9 +8,12 @@ from pyramid.request import Request
 import webob.cookies
 
 # package
+from pyramid_session_multi import ISessionMultiManagerConfig
 from pyramid_session_multi import register_session_factory
 
 # local
+from ._utils import discriminator_False
+from ._utils import discriminator_True
 from ._utils import empty_view
 from ._utils import ok_response_factory
 from ._utils import PY3
@@ -22,7 +25,57 @@ from ._utils import session_factory_3
 # ==============================================================================
 
 
-class _TestPanelConfiguration(unittest.TestCase):
+class SessionConfigMixin(object):
+    """
+    Mixin Class for configuring our sessions
+    """
+
+    # class setup; boolean. should sessions be enabled?
+    enable_sessions = True
+
+    # class setup; None or list of session namespaces to discriminate
+    discriminate_sessions = None
+
+    # class setup; dict of session namespace to factory
+    session_to_factory = {
+        "session_a": session_factory_1,
+        "session_b": session_factory_2,
+        "session_c": session_factory_3,
+    }
+
+    # class setup; dict of session namespace to discriminator
+    session_to_discriminator = {
+        "session_a": discriminator_True,  # pass
+        "session_b": discriminator_True,  # pass
+        "session_c": discriminator_False,  # fail
+    }
+
+    # set within `.setup`; pyramid config object; `testing.setUp()`
+    config = None
+
+    # set within `.configure_sessions`, set this to a list of the enabled namespaces
+    sessions_enabled = None
+
+    def configure_sessions(self):
+        if self.enable_sessions:
+            self.config.include("pyramid_session_multi")
+            for _namespace, _factory in self.session_to_factory.items():
+                # register_session_factory(self.config, "session_a", session_factory_1)
+                _discriminator = None
+                if (
+                    self.discriminate_sessions
+                    and _namespace in self.discriminate_sessions
+                ):
+                    _discriminator = self.session_to_discriminator[_namespace]
+                register_session_factory(
+                    self.config, _namespace, _factory, discriminator=_discriminator
+                )
+                self.sessions_enabled = self.session_to_factory.keys()
+        else:
+            self.sessions_enabled = []
+
+
+class _TestPanelConfiguration(unittest.TestCase, SessionConfigMixin):
     """
     this was the original test
 
@@ -30,7 +83,6 @@ class _TestPanelConfiguration(unittest.TestCase):
 
     config = None
     app = None
-    enable_sessions = True
     re_toolbar_link = re_toolbar_link
 
     def setUp(self):
@@ -38,12 +90,8 @@ class _TestPanelConfiguration(unittest.TestCase):
         config.add_settings(
             {"debugtoolbar.includes": "pyramid_session_multi.debugtoolbar"}
         )
-        config.include("pyramid_session_multi")
         config.include("pyramid_debugtoolbar")
-        if self.enable_sessions:
-            register_session_factory(config, "session_a", session_factory_1)
-            register_session_factory(config, "session_b", session_factory_2)
-            register_session_factory(config, "session_c", session_factory_3)
+        self.configure_sessions()
         config.add_view(empty_view)
         # make the app
         self.settings = config.registry.settings
@@ -84,8 +132,6 @@ class TestPanelConfiguration_NotConfigured(_TestPanelConfiguration):
 
 
 class TestPanelConfiguration_Configured(_TestPanelConfiguration):
-    enable_sessions = True
-
     def test_panel_injected(self):
         # make a request
         req1 = Request.blank("/")
@@ -115,11 +161,10 @@ class TestPanelConfiguration_Configured(_TestPanelConfiguration):
         self.assertIn("<h3>SessionMulti</h3>", resp2.text)
 
 
-class _TestDebugtoolbarPanel(unittest.TestCase):
+class _TestDebugtoolbarPanel(unittest.TestCase, SessionConfigMixin):
+
     config = None
     app = None
-    enable_sessions = True
-    sessions_enabled = None
     re_toolbar_link = re_toolbar_link
 
     def _session_view(self, context, request):
@@ -144,14 +189,7 @@ class _TestDebugtoolbarPanel(unittest.TestCase):
             {"debugtoolbar.includes": "pyramid_session_multi.debugtoolbar"}
         )
         config.include("pyramid_debugtoolbar")
-        if self.enable_sessions:
-            config.include("pyramid_session_multi")
-            register_session_factory(config, "session_a", session_factory_1)
-            register_session_factory(config, "session_b", session_factory_2)
-            register_session_factory(config, "session_c", session_factory_3)
-            self.sessions_enabled = ["session_a", "session_b", "session_c"]
-        else:
-            self.sessions_enabled = []
+        self.configure_sessions()
         config.add_route("session_view", "/session-view")
         config.add_route("session_view_two", "/session-view-two")
         config.add_view(self._session_view, route_name="session_view")
@@ -163,7 +201,7 @@ class _TestDebugtoolbarPanel(unittest.TestCase):
     def tearDown(self):
         testing.tearDown()
 
-    def _makeOne(self, is_active=None):
+    def _makeOne(self, is_active=None, sessions_invalid=None):
         """
         Makes a request to the main application
         * which invokes `self._session_view`
@@ -174,6 +212,8 @@ class _TestDebugtoolbarPanel(unittest.TestCase):
             Default ``None``
             If ``True``, a ``pdbt_active`` cookie will be sent to activate
             additional features in the "Session" panel.
+        :param sessions_invalid: iterable of invalid namespaces to create the
+            view with
         """
         # make a request
         req1 = Request.blank("/session-view")
@@ -181,6 +221,12 @@ class _TestDebugtoolbarPanel(unittest.TestCase):
         _cookies = []
         if is_active:
             _cookies.append("pdtb_active=session_multi")
+        if sessions_invalid:
+            manager_config = self.app.registry.queryUtility(ISessionMultiManagerConfig)
+            for ns, ckname in manager_config.namespaces_to_cookienames.items():
+                if ns in sessions_invalid:
+                    # create an invalid cookie
+                    _cookies.append("%s=123123123123" % ns)
         if _cookies:
             _cookies = "; ".join(_cookies)
             if not PY3:
@@ -251,13 +297,21 @@ class _TestDebugtoolbarPanel(unittest.TestCase):
 
         return (resp_app2, resp_toolbar)
 
-    def _check_rendered__panel(self, resp, is_configured=None, sessions_accessed=None):
+    def _check_rendered__panel(
+        self,
+        resp,
+        is_configured=None,
+        sessions_accessed=None,
+        sessions_discriminator_fail=None,
+    ):
         """
         Ensure the rendered panel exists with statements.
 
         :param resp: a ``Response`` object with a ``.text`` attribute for html
         :param is_configured: is an ``ISessionFactory`` configured for the app?
         :param sessions_accessed: iterable of namespaces accessed during the view
+        :param sessions_discriminator_fail: iterable of namespaces with failed
+            discriminators
         """
         self.assertIn('<li class="" id="pDebugPanel-session_multi">', resp.text)
         self.assertIn(
@@ -272,7 +326,7 @@ class _TestDebugtoolbarPanel(unittest.TestCase):
                 "<p>No `ISessionMultiConfiguration` Configured</p>", resp.text
             )
         for namespace in self.sessions_enabled:
-            if namespace in sessions_accessed:
+            if sessions_accessed and (namespace in sessions_accessed):
                 self.assertIn(
                     """<code>request.session_multi["%s"]</code>\n\t\t\t\t\t"""
                     """<span class="label label-success">accessed during the main `Request` handler</span>"""
@@ -283,6 +337,16 @@ class _TestDebugtoolbarPanel(unittest.TestCase):
                 self.assertIn(
                     """<code>request.session_multi["%s"]</code>\n\t\t\t\t\t"""
                     """<span class="label label-warning">not accessed during the main `Request` handler</span>"""
+                    % namespace,
+                    resp.text,
+                )
+            if sessions_discriminator_fail and (
+                namespace in sessions_discriminator_fail
+            ):
+                self.assertIn(
+                    """<code>request.session_multi["%s"]</code>\n\t\t\t\t\t"""
+                    """<span class="label label-success">accessed during the main `Request` handler</span>\n\t\t\t\t\t"""
+                    """<span class="label label-danger">Session Discriminator Fail</span>"""
                     % namespace,
                     resp.text,
                 )
@@ -315,8 +379,6 @@ class TestSessionConfiguredNoAccess(_TestDebugtoolbarPanel):
     * no "Session" data is accessed
     """
 
-    enable_sessions = True
-
     def _session_view(self, context, request):
         return ok_response_factory()
 
@@ -342,8 +404,6 @@ class TestSimpleSession(_TestDebugtoolbarPanel):
     * "Session" data is accessed
     """
 
-    enable_sessions = True
-
     def _session_view(self, context, request):
         request.session_multi["session_a"]["foo"] = "bar"
         return ok_response_factory()
@@ -354,6 +414,21 @@ class TestSimpleSession(_TestDebugtoolbarPanel):
 
     def test_panel(self):
         (resp_app, resp_toolbar) = self._makeOne()
+        self.assertEqual(resp_toolbar.status_code, 200)
+        self._check_rendered__panel(
+            resp_toolbar,
+            is_configured=True,
+            sessions_accessed=[
+                "session_a",
+            ],
+        )
+
+    def test_panel_invalid_session(self):
+        (resp_app, resp_toolbar) = self._makeOne(
+            sessions_invalid=[
+                "session_a",
+            ],
+        )
         self.assertEqual(resp_toolbar.status_code, 200)
         self._check_rendered__panel(
             resp_toolbar,
@@ -425,8 +500,6 @@ class TestSessionAlt(_TestDebugtoolbarPanel):
     * the "Session" panel is configured
     * "Session" data is accessed
     """
-
-    enable_sessions = True
 
     def _session_view(self, context, request):
         # touches the session
@@ -511,8 +584,6 @@ class TestSortingErrorsSession(_TestDebugtoolbarPanel):
     to sort a float and a string under Python3.
     """
 
-    enable_sessions = True
-
     def _session_view(self, context, request):
         rand = random.random()
         request.session_multi["session_a"][rand] = True
@@ -527,5 +598,42 @@ class TestSortingErrorsSession(_TestDebugtoolbarPanel):
             is_configured=True,
             sessions_accessed=[
                 "session_a",
+            ],
+        )
+
+
+class TestDiscriminatedSessions(_TestDebugtoolbarPanel):
+    """
+    Test the session discriminator works properly
+    """
+
+    discriminate_sessions = [
+        "session_a",  # pass
+        "session_c",  # fail
+    ]
+
+    def _session_view(self, context, request):
+        # touches the session
+        # discriminated session: pass
+        request.session_multi["session_a"]["foo"] = "bar"
+        # no discriminator
+        request.session_multi["session_b"]["biz"] = "bang"
+        # discriminated session: fail
+        self.assertEqual(request.session_multi["session_c"], None)
+        return ok_response_factory()
+
+    def test_panel(self):
+        (resp_app, resp_toolbar) = self._makeOne()
+        self.assertEqual(resp_toolbar.status_code, 200)
+        self._check_rendered__panel(
+            resp_toolbar,
+            is_configured=True,
+            sessions_accessed=[
+                "session_a",
+                "session_b",
+                "session_c",  # although a fail, we accessed it
+            ],
+            sessions_discriminator_fail=[
+                "session_c",
             ],
         )

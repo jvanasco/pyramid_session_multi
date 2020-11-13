@@ -12,6 +12,8 @@ from pyramid_session_multi import SessionMultiManager
 from pyramid_session_multi import UnregisteredSession
 
 # local
+from ._utils import discriminator_True
+from ._utils import discriminator_False
 from ._utils import PY3
 from ._utils import session_factory_1
 from ._utils import session_factory_2
@@ -106,24 +108,16 @@ class Test_Discriminator(unittest.TestCase):
         config = self.config
         config.include("pyramid_session_multi")
 
-        def _f_True(_req):
-            return True
-
-        def _f_False(_req):
-            return False
-
-        discriminator_1 = _f_True  # pass
-        discriminator_2 = _f_True  # pass
-        discriminator_3 = _f_False  # fail
-
+        # pass
         register_session_factory(
-            config, "session_1", session_factory_1, discriminator=discriminator_1
+            config, "session_1", session_factory_1, discriminator=discriminator_True
         )
         register_session_factory(
-            config, "session_2", session_factory_2, discriminator=discriminator_2
+            config, "session_2", session_factory_2, discriminator=discriminator_True
         )
+        # fail
         register_session_factory(
-            config, "session_3", session_factory_3, discriminator=discriminator_3
+            config, "session_3", session_factory_3, discriminator=discriminator_False
         )
 
         # create a session_multi object

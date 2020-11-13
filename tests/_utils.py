@@ -13,8 +13,15 @@ from pyramid.session import SignedCookieSessionFactory
 PY3 = sys.version_info[0] == 3
 
 
-# used to ensure the toolbar link is injected into requests
-re_toolbar_link = re.compile(r'(?:href="http://localhost)(/_debug_toolbar/[\d]+)"')
+# ------------------------------------------------------------------------------
+
+
+def discriminator_False(request):
+    return False
+
+
+def discriminator_True(request):
+    return True
 
 
 def ok_response_factory():
@@ -26,6 +33,10 @@ def ok_response_factory():
 
 def empty_view(request):
     return ok_response_factory()
+
+
+# used to ensure the toolbar link is injected into requests
+re_toolbar_link = re.compile(r'(?:href="http://localhost)(/_debug_toolbar/[\d]+)"')
 
 
 session_factory_1 = SignedCookieSessionFactory("secret1", cookie_name="session1")

@@ -94,20 +94,25 @@ class SessionMultiDebugPanel(DebugPanel):
             config = request.registry.getUtility(ISessionMultiManagerConfig)
             data["configuration"] = {
                 "config": config,
-                "namespaces": {},
                 "cookies": {},
+                "discriminators": {},
+                "namespaces": {},
             }
             for namespace in config.namespaces:
-                data["configuration"]["namespaces"][
-                    namespace
-                ] = config.get_namespace_config(namespace)
                 data["configuration"]["cookies"][
                     namespace
                 ] = config.get_namespace_cookiename(namespace)
+                data["configuration"]["discriminators"][
+                    namespace
+                ] = config.get_namespace_discriminator(namespace)
+                data["configuration"]["namespaces"][
+                    namespace
+                ] = config.get_namespace_config(namespace)
                 data["session_accessed"][namespace] = {
                     "pre": None,  # pre-processing (toolbar)
                     "panel_setup": None,  # during the panel setup?
                     "main": None,  # during Request processing
+                    "discriminator_fail": None,  # True if discriminator_fail
                 }
                 data["session_data"][namespace] = {
                     "ingress": {},  # in
@@ -141,12 +146,18 @@ class SessionMultiDebugPanel(DebugPanel):
 
         def _process_namespace(_namespace, _session):
             # helper function
-            for k, v in dictrepr(_session):
-                data["session_data"][_namespace]["ingress"][k] = v
-                data["session_data"][_namespace]["keys"].add(k)
+            # a discriminator could return None for the session
+            if _session is not None:
+                for k, v in dictrepr(_session):
+                    data["session_data"][_namespace]["ingress"][k] = v
+                    data["session_data"][_namespace]["keys"].add(k)
 
         # define a wrapper for this session
         def new_wrapper_a(_namespace, _session):
+
+            if _session is None:
+                data["session_accessed"][_namespace]["discriminator_fail"] = True
+
             def session_wrapper():
                 data["session_accessed"][_namespace]["main"] = True
                 return _session
@@ -156,16 +167,20 @@ class SessionMultiDebugPanel(DebugPanel):
         def new_wrapper_b(_namespace):
             def session_wrapper():
                 # get the session
-                session = session_multi._discriminated_session(_namespace)
+                _session = session_multi._discriminated_session(_namespace)
+
+                if _session is None:
+                    data["session_accessed"][_namespace]["discriminator_fail"] = True
+
                 # process the inbound session data
-                _process_namespace(_namespace, session)
+                _process_namespace(_namespace, _session)
                 # note the session was accessed during the main request
                 data["session_accessed"][_namespace]["main"] = True
-                return session
+                return _session
 
             return session_wrapper
 
-        # -- logic --
+        # -- main logic --
 
         if self.is_active:
             # not known on `.__init__` due to the toolbar's design.
@@ -239,14 +254,16 @@ class SessionMultiDebugPanel(DebugPanel):
 
         def _process_namespace(_namespace, _session):
             # helper function
-            for k, v in dictrepr(_session):
-                data["session_data"][_namespace]["egress"][k] = v
-                data["session_data"][_namespace]["keys"].add(k)
+            # a discriminator could return None for the session
+            if _session is not None:
+                for k, v in dictrepr(_session):
+                    data["session_data"][_namespace]["egress"][k] = v
+                    data["session_data"][_namespace]["keys"].add(k)
 
-                if (k not in data["session_data"][_namespace]["ingress"]) or (
-                    data["session_data"][_namespace]["ingress"][k] != v
-                ):
-                    data["session_data"][_namespace]["changed"].add(k)
+                    if (k not in data["session_data"][_namespace]["ingress"]) or (
+                        data["session_data"][_namespace]["ingress"][k] != v
+                    ):
+                        data["session_data"][_namespace]["changed"].add(k)
 
         if self.is_active or ("session_multi" in self._request.__dict__):
             try:

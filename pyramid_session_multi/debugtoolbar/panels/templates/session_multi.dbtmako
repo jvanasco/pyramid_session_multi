@@ -7,7 +7,8 @@
 			<tr>
 				<th>Namespace</th>
 				<th>Cookiename</th>
-				<th>Config</th>
+				<th>Session Factory</th>
+				<th>Discriminator</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -16,6 +17,7 @@
 					<td><code>${ns}</code></td>
 					<td><code>${configuration["cookies"][ns]}</code></td>
 					<td>${configuration["namespaces"][ns]}</td>
+					<td>${configuration["discriminators"][ns]}</td>
 				</tr>
 			% endfor
 		</tbody>
@@ -54,7 +56,11 @@
 					<span class="label label-success">accessed during the main `Request` handler</span>
 				% else:
 					<span class="label label-warning">not accessed during the main `Request` handler</span>
-				% endif:
+				% endif
+				% if session_accessed[ns]["discriminator_fail"]:
+					<span class="label label-danger">Session Discriminator Fail</span>
+				% endif
+				
 			</td>
 		</tr>
 	% endfor

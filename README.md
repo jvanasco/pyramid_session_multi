@@ -43,6 +43,53 @@ each other, so accessing `request.session_multi` will not instantiate any of the
 component Sessions.
 
 
+# Advanced Usage
+
+`register_session_factory` accepts an optional argument: "discriminator".
+
+A "discriminator" is a callable function that will receive a single argument:
+the active request.
+
+If the discriminator function returns `True`, the SessionFactory will be invoked
+and a Session object will be mounted onto the namespace.
+
+If the discriminator function returns a non-`True` value (e.g. `False` or `None`),
+the SessionFactory will NOT be invoked, and `None` will be mounted onto the
+session's namespace.
+
+Consider an application that is run on both http and https protocols.  In the
+following example, `.session_multi["weak"]` can always be accessed, but
+`.session_multi["https_only"]` will only be available on https connections.
+
+	from pyramid.session import SignedCookieSessionFactory
+
+	session_factory_a = SignedCookieSessionFactory(
+		'secret', cookie_name='weak_cookie'
+	)
+	session_factory_b = SignedCookieSessionFactory(
+		'secret', cookie_name='secure_cookie', secure=True, httponly=True
+	)
+
+	def session_b_discriminator(request):
+		if request.scheme == 'https'
+			return True
+		return False
+
+    def main(global_config, **settings):
+        config = Configurator(settings=settings)
+        config.include('pyramid_session_multi')
+        pyramid_session_multi.register_session_factory(
+        	config, 'weak', session_factory_a
+        )
+        pyramid_session_multi.register_session_factory(
+        	config, 'https_only', session_factory_b, discriminator=session_b_discriminator
+        )
+        return config.make_wsgi_app()
+        
+With this discriminator in place, `.session_multi["https_only"]` will only be
+a Pyramid `ISession` on https connections; on http connections it will be `None`.
+
+
 # why?
 
 Pyramid ships with support for a single Session, which is bound to
@@ -89,7 +136,12 @@ There are two ways to enable the extended Session display used by the
     This panel's name for cookie activation is "session_multi".
 
 
-# how does it work?
+## What does the Panel look like?
+
+![Python package](https://raw.githubusercontent.com/jvanasco/pyramid_session_multi/master/docs/debugtoolbar_panel.png)
+
+
+# How does this library work?
 
 Instead of registering one Session factory to `request.session`, this library
 creates a Request attribute `request.session_multi` and registers the various
