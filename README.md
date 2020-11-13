@@ -38,9 +38,12 @@ is a namespace, which we then use to access Session data in views/etc:
     request.session_multi['session1']['foo'] = "bar"
     request.session_multi['session2']['bar'] = "foo"
 
-pyramid_session_multi lazily evaluates each Session namespace independently of
+`pyramid_session_multi` lazily evaluates each Session namespace independently of
 each other, so accessing `request.session_multi` will not instantiate any of the
 component Sessions.
+
+`pyramid_session_multi` is completely independent of Pyramid's built-in Session
+support, so you can still use `request.session` alongside this library!
 
 
 # Advanced Usage

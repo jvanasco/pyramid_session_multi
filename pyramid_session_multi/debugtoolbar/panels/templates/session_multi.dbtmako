@@ -31,11 +31,11 @@
 % if is_active:
 	<p>This panel <span class="label label-success">was active</span> for this
 	request, and will always display the "SessionMulti" data -- even if 
-	`.session` was not accessed during the request.
+	`.session_multi` was not accessed during the request.
 	This behavior can be toggled with the Panel Settings.</p>
 % else:
 	<p>This panel <span class="label label-danger">was not active</span> for this
-	request, and will only display the "SessionMulti" data if `.session`
+	request, and will only display the "SessionMulti" data if `.session_multi`
 	was accessed during the request.
 	This behavior can be toggled with the Panel Settings.</p>
 % endif

@@ -138,8 +138,8 @@ class SessionMultiDebugPanel(DebugPanel):
         Pre-process the ``Request`` if the panel is active, or if the
         ``Session`` has already been accessed, as the ``Request`` requires
         activating the ``Session`` interface.
-        If pre-processing does not happen, the ``.session`` property will be
-        replaced with a wrapped function which will invoke the ingress
+        If pre-processing does not happen, the ``.session_multi`` property will
+        be replaced with a wrapped function which will invoke the ingress
         processing if the session is accessed.
         """
         data = self.data

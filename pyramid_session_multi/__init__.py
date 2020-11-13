@@ -14,7 +14,7 @@ from zope.interface import Attribute
 # ==============================================================================
 
 
-__VERSION__ = "0.3.0.dev0"
+__VERSION__ = "0.3.0"
 
 
 # ------------------------------------------------------------------------------
@@ -53,9 +53,10 @@ class ISessionMultiManagerConfig(Interface):
             a discriminator function to run on the request.
             The discriminator should accept a request and return `True` (pass)
             or `False`/`None` (fail).
-            if the discriminator fails, the `request.session` will be set to `None`.
-            if the discriminator passes, the `request.session` will be the output
-            of `factory(request)`
+            If the discriminator fails, the namespace in `request.session_multi`
+            will be set to `None`.
+            If the discriminator passes, the namespace in `request.session_multi`
+            will be the output of `factory(request)`
         :param cookie_name: stashed as `_cookie_name`
         """
 
