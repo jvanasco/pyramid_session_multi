@@ -141,7 +141,7 @@ There are two ways to enable the extended Session display used by the
 
 ## What does the Panel look like?
 
-![Python package](https://raw.githubusercontent.com/jvanasco/pyramid_session_multi/master/docs/debugtoolbar_panel.png)
+![Python package](https://raw.githubusercontent.com/jvanasco/pyramid_session_multi/main/docs/debugtoolbar_panel.png)
 
 
 # How does this library work?
