@@ -16,7 +16,7 @@ long_description = (
 with open(os.path.join(HERE, "README.md")) as r_file:
     long_description = r_file.read()
 
-with open(os.path.join(HERE, "pyramid_session_multi", "__init__.py")) as v_file:
+with open(os.path.join(HERE, "src", "pyramid_session_multi", "__init__.py")) as v_file:
     VERSION = re.compile(r'.*__VERSION__ = "(.*?)"', re.S).match(v_file.read()).group(1)
 
 # pyramid 1.5 == SignedCookieSessionFactory
@@ -45,11 +45,14 @@ setup(
         "License :: OSI Approved :: MIT License",
     ],
     keywords="pyramid session web",
-    packages=["pyramid_session_multi"],
     author="Jonathan Vanasco",
     author_email="jonathan@findmeon.com",
     url="https://github.com/jvanasco/pyramid_session_multi",
     license="MIT",
+    packages=find_packages(
+        where="src",
+    ),
+    package_dir={"": "src"},
     include_package_data=True,
     zip_safe=False,
     install_requires=requires,

@@ -1,3 +1,6 @@
+0.3.2
+	packaging fixes
+
 0.3.1
 	removed redundant code
 	small optimization of imports
