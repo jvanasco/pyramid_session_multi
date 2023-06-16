@@ -162,7 +162,6 @@ class TestPanelConfiguration_Configured(_TestPanelConfiguration):
 
 
 class _TestDebugtoolbarPanel(unittest.TestCase, SessionConfigMixin):
-
     config = None
     app = None
     re_toolbar_link = re_toolbar_link

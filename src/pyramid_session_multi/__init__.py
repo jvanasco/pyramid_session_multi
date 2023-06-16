@@ -1,19 +1,31 @@
 # stdlib
 from types import FunctionType
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import Iterable
+from typing import List
+from typing import Optional
+from typing import TYPE_CHECKING
 
-# pyramid
+# pypi
 from pyramid.decorator import reify
-from pyramid.interfaces import IDict
 from pyramid.exceptions import ConfigurationError
+from pyramid.interfaces import IDict
+from pyramid.interfaces import ISession
+from zope.interface import Attribute
 from zope.interface import implementer
 from zope.interface import Interface
-from zope.interface import Attribute
 
+# typing
+if TYPE_CHECKING:
+    from pyramid.config import Configurator
+    from pyramid.request import Request
 
 # ==============================================================================
 
 
-__VERSION__ = "0.3.2"
+__VERSION__ = "0.4.0dev"
 
 
 # ------------------------------------------------------------------------------
@@ -34,12 +46,16 @@ class _SessionDiscriminated(Exception):
 class ISessionMultiManagerConfig(Interface):
     """
     An interface representing a factory which accepts a `config` instance and
-    returns an ISessionMultiManagerConfig compliant object. There should be one
-    and only one ISessionMultiManagerConfig per application.
+    returns an ISessionMultiManagerConfig compliant object.
+    There should be one and only one ISessionMultiManagerConfig per application.
     """
 
     def register_session_factory(
-        self, namespace, session_factory, discriminator=None, cookie_name=None
+        self,
+        namespace: str,
+        session_factory: Callable,
+        discriminator: Optional[Callable] = None,
+        cookie_name: Optional[str] = None,
     ):
         """
         Register an ISessionFactory compliant factory.
@@ -59,23 +75,41 @@ class ISessionMultiManagerConfig(Interface):
         :param cookie_name: stashed as `_cookie_name`
         """
 
-    discriminators = Attribute("""list all namespaces with discriminators""")
+    discriminators = Attribute(
+        """list all namespaces with discriminators""" """:returns: list of strings"""
+    )
 
-    namespaces = Attribute("""list all possible namespaces""")
+    namespaces = Attribute(
+        """list all possible namespaces""" """:returns: list of strings"""
+    )
 
-    namespaces_to_cookienames = Attribute("""dict of namespaces to cookienames""")
+    namespaces_to_cookienames = Attribute(
+        """dict of namespaces to cookienames""" """:returns: dict"""
+    )
 
-    def has_namespace(self, namespace):
-        """is this a valid namespace/session?"""
+    def has_namespace(self, namespace: str):
+        """
+        is this a valid namespace/session?
+        :returns: bool
+        """
 
-    def get_namespace_config(self, namespace):
-        """is this a valid namespace/session?"""
+    def get_namespace_config(self, namespace: str):
+        """
+        is this a valid namespace/session?
+        :returns: a session factory or None
+        """
 
-    def get_namespace_cookiename(self, namespace):
-        """get the namespace cookiename"""
+    def get_namespace_cookiename(self, namespace: str):
+        """
+        get the namespace cookiename
+        :returns: str or None
+        """
 
-    def get_namespace_discriminator(self, namespace):
-        """get the namespace discriminator"""
+    def get_namespace_discriminator(self, namespace: str):
+        """
+        get the namespace discriminator
+        :returns: str or None
+        """
 
 
 @implementer(ISessionMultiManagerConfig)
@@ -86,14 +120,18 @@ class SessionMultiManagerConfig(object):
     It is used to create new managers on each request.
     """
 
-    def __init__(self, config):
-        self._session_factories = {}
-        self._discriminators = {}
-        self._cookienames = {}
+    def __init__(self, config: "Configurator"):
+        self._session_factories: Dict[str, Callable] = {}
+        self._discriminators: Dict[str, Callable] = {}
+        self._cookienames: Dict[str, str] = {}
 
     def register_session_factory(
-        self, namespace, session_factory, discriminator=None, cookie_name=None
-    ):
+        self,
+        namespace: str,
+        session_factory: Callable,
+        discriminator: Optional[Callable] = None,
+        cookie_name: Optional[str] = None,
+    ) -> bool:
         """
         See `ISessionMultiManagerConfig.register_session_factory` for docs
         """
@@ -128,33 +166,37 @@ class SessionMultiManagerConfig(object):
         return True
 
     @property
-    def discriminators(self):
+    def discriminators(self) -> Iterable[str]:
         """list all namespaces with discriminators"""
         return list(self._discriminators.keys())
 
     @property
-    def namespaces(self):
+    def namespaces(self) -> Iterable[str]:
         """list all possible namespaces"""
         return list(self._session_factories.keys())
 
     @property
-    def namespaces_to_cookienames(self):
+    def namespaces_to_cookienames(self) -> Dict[str, str]:
         """dict of namespaces to cookienames"""
         return dict(self._cookienames)
 
-    def has_namespace(self, namespace):
+    def has_namespace(self, namespace: str) -> bool:
         """is this a valid namespace/session?"""
         return True if namespace in self._session_factories else False
 
-    def get_namespace_config(self, namespace):
+    # got      "Union[Callable[..., Any], Dict[str, Callable[..., Any]], None]"
+    # expected "Optional[Dict[str, Callable[..., Any]]]"
+    # expected "Union[                    Dict[str, Callable[..., Any]], None]"
+
+    def get_namespace_config(self, namespace: str) -> Optional[Callable]:
         """get the namespace config"""
         return self._session_factories.get(namespace, None)
 
-    def get_namespace_cookiename(self, namespace):
+    def get_namespace_cookiename(self, namespace: str) -> Optional[str]:
         """get the namespace cookiename"""
         return self._cookienames.get(namespace, None)
 
-    def get_namespace_discriminator(self, namespace):
+    def get_namespace_discriminator(self, namespace: str) -> Optional[Callable]:
         """get the namespace discriminator"""
         return self._discriminators.get(namespace, None)
 
@@ -167,14 +209,14 @@ class SessionMultiManager(dict):
     mountpoints as needed.
     """
 
-    def __init__(self, request):
+    def __init__(self, request: "Request"):
         self.request = request
         manager_config = request.registry.queryUtility(ISessionMultiManagerConfig)
         if manager_config is None:
             raise AttributeError("No session multi manager registered")
         self._manager_config = manager_config
 
-    def _discriminated_session(self, namespace):
+    def _discriminated_session(self, namespace: str) -> ISession:
         """
         private method. this was part of __get_item__ but was pulled out
         for the debugging panel
@@ -190,7 +232,7 @@ class SessionMultiManager(dict):
             pass
         return _session
 
-    def __getitem__(self, namespace):
+    def __getitem__(self, namespace: str) -> ISession:
         """
         Return the value for key ``namespace`` from the dictionary or raise a
         KeyError if the key doesn't exist
@@ -207,57 +249,57 @@ class SessionMultiManager(dict):
                 session = session()
                 dict.__setitem__(self, namespace, session)
             return session
-        except KeyError as exc:
+        except KeyError as exc:  # noqa: F841
             raise UnregisteredSession("'%s' is not a valid session" % namespace)
 
     #
     # turn off some public methods
     #
 
-    def __setitem__(self, namespace, value):
+    def __setitem__(self, namespace: str, value: Any):
         raise ValueError("May not `set` on a `SessionMultiManager`")
 
-    def __delitem__(self, namespace):
+    def __delitem__(self, namespace: str):
         raise ValueError("May not `del` on a `SessionMultiManager`")
 
     @reify
-    def discriminators(self):
+    def discriminators(self) -> List[Callable]:
         """list all namespaces with discriminators"""
         return self._manager_config.discriminators
 
     @reify
-    def namespaces_to_cookienames(self):
+    def namespaces_to_cookienames(self) -> Dict[str, str]:
         """dict of namespaces to cookienames"""
         return self._manager_config.namespaces_to_cookienames
 
     @reify
-    def namespaces(self):
+    def namespaces(self) -> List[str]:
         """list all possible namespaces"""
         return self._manager_config.namespaces
 
-    def has_namespace(self, namespace):
+    def has_namespace(self, namespace: str) -> bool:
         """is this a valid namespace/session?"""
         return self._manager_config.has_namespace(namespace)
 
-    def get_namespace_config(self, namespace):
+    def get_namespace_config(self, namespace: str) -> Optional[Callable]:
         """get the namespace config"""
         return self._manager_config.get_namespace(namespace)
 
-    def get_namespace_cookiename(self, namespace):
+    def get_namespace_cookiename(self, namespace: str) -> Optional[str]:
         """get the namespace cookiename"""
         return self._manager_config.get_namespace_cookiename(namespace)
 
-    def get_namespace_discriminator(self, namespace):
+    def get_namespace_discriminator(self, namespace: str) -> Optional[Callable]:
         """get the namespace discriminator"""
         return self._manager_config.get_discriminator(namespace)
 
-    def invalidate(self):
+    def invalidate(self) -> None:
         """invalidate all possible namespaces"""
         for namespace in self.namespaces:
             self[namespace].invalidate()
 
 
-def new_session_multi(request):
+def new_session_multi(request: "Request") -> SessionMultiManager:
     """
     this is turned into a reified request property
     """
@@ -266,8 +308,12 @@ def new_session_multi(request):
 
 
 def register_session_factory(
-    config, namespace, session_factory, discriminator=None, cookie_name=None
-):
+    config: "Configurator",
+    namespace: str,
+    session_factory: Callable,
+    discriminator: Optional[Callable] = None,
+    cookie_name: Optional[str] = None,
+) -> None:
     manager_config = config.registry.queryUtility(ISessionMultiManagerConfig)
     if manager_config is None:
         raise AttributeError("No session multi manager registered")
@@ -276,7 +322,7 @@ def register_session_factory(
     )
 
 
-def includeme(config):
+def includeme(config: "Configurator") -> None:
     # Step 1 - set up a ``SessionMultiManagerConfig``
     manager_config = SessionMultiManagerConfig(config)
     config.registry.registerUtility(manager_config, ISessionMultiManagerConfig)
