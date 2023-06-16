@@ -1,20 +1,28 @@
 # stdlib
 from types import FunctionType
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Tuple
+from typing import TYPE_CHECKING
 
-# pyramid
-from pyramid_debugtoolbar.panels import DebugPanel
-
-# from pyramid_debugtoolbar.utils import dictrepr
-import zope.interface.interfaces
+# pypi
+from pyramid_debugtoolbar.panels import DebugPanel  # type: ignore[import]
+import zope.interface.interfaces  # type: ignore[import]
 
 # local
 from ... import ISessionMultiManagerConfig
 
+# typing
+if TYPE_CHECKING:
+    from pyramid.request import Request  # type: ignore[import]
+    from pyramid.response import Response  # type: ignore[import]
 
 # ==============================================================================
 
 
-def dictrepr(d):
+def dictrepr(d: Dict) -> List[Tuple[str, Any]]:
     """
     a sort-safe version of pyramid_debugtoolbar.utils.dictrepr`
         from pyramid_debugtoolbar.utils import dictrepr
@@ -22,7 +30,7 @@ def dictrepr(d):
     consider migrating to the upstream library when fixed
     this will require version pinning.
     """
-    out = {}
+    out: Dict[str, Any] = {}
     for val in d:
         try:
             out[val] = repr(d[val])
@@ -33,9 +41,6 @@ def dictrepr(d):
         return sorted(out.items())
     except TypeError:
         return sorted(out.items(), key=lambda k: str(k))
-
-
-_ = lambda x: x
 
 
 class NotInSession(object):
@@ -51,12 +56,15 @@ class SessionMultiDebugPanel(DebugPanel):
     template = (
         "pyramid_session_multi.debugtoolbar.panels:templates/session_multi.dbtmako"
     )
-    title = _("SessionMulti")
+    title = "SessionMulti"
     nav_title = title
     user_activate = True
 
+    # used to store the Request for processing
+    _request: "Request"
+
     @property
-    def has_content(self):
+    def has_content(self) -> bool:
         """
         This is too difficult to figure out under the following parameters:
 
@@ -66,15 +74,11 @@ class SessionMultiDebugPanel(DebugPanel):
         """
         return True
 
-    # used to store the Request for processing
-    _request = None
-
-    def __init__(self, request):
+    def __init__(self, request: "Request"):
         """
         Initial setup of the `data` payload.
         """
-
-        self.data = data = {
+        data: Dict[str, Any] = {
             "configuration": None,
             "is_active": None,  # not known on `.__init__`
             "NotInSession": NotInSession,
@@ -86,6 +90,7 @@ class SessionMultiDebugPanel(DebugPanel):
             "session_accessed": {},
             "session_data": {},
         }
+        self.data = data
 
         # we need this for processing in the response phase
         self._request = request
@@ -125,7 +130,7 @@ class SessionMultiDebugPanel(DebugPanel):
             # the `ISessionFactory` is not configured
             pass
 
-    def wrap_handler(self, handler):
+    def wrap_handler(self, handler: Callable) -> Callable:
         """
         ``wrap_handler`` allows us to monitor the entire lifecycle of
         the  ``Request``.
@@ -144,7 +149,7 @@ class SessionMultiDebugPanel(DebugPanel):
         """
         data = self.data
 
-        def _process_namespace(_namespace, _session):
+        def _process_namespace(_namespace: str, _session):
             # helper function
             # a discriminator could return None for the session
             if _session is not None:
@@ -153,8 +158,7 @@ class SessionMultiDebugPanel(DebugPanel):
                     data["session_data"][_namespace]["keys"].add(k)
 
         # define a wrapper for this session
-        def new_wrapper_a(_namespace, _session):
-
+        def new_wrapper_a(_namespace: str, _session):
             if _session is None:
                 data["session_accessed"][_namespace]["discriminator_fail"] = True
 
@@ -164,7 +168,7 @@ class SessionMultiDebugPanel(DebugPanel):
 
             return session_wrapper
 
-        def new_wrapper_b(_namespace):
+        def new_wrapper_b(_namespace: str):
             def session_wrapper():
                 # get the session
                 _session = session_multi._discriminated_session(_namespace)
@@ -228,7 +232,6 @@ class SessionMultiDebugPanel(DebugPanel):
                     dict.__setitem__(session_multi, namespace, session_wrapper)
 
                 else:
-
                     # generate a new wrapper
                     session_wrapper = new_wrapper_b(namespace)
 
@@ -237,7 +240,7 @@ class SessionMultiDebugPanel(DebugPanel):
 
         return handler
 
-    def process_response(self, response):
+    def process_response(self, response: "Response") -> None:
         """
         ``Response`` | "egress"
 
@@ -280,8 +283,7 @@ class SessionMultiDebugPanel(DebugPanel):
             if session_multi is not None:
                 data["session_multi_accessed"]["main"] = _accessed_main
 
-                for (namespace, session) in session_multi.items():
-
+                for namespace, session in session_multi.items():
                     if isinstance(session, FunctionType):
                         # skip wrapped loaders on egress if we haven't touched
                         # them yet
