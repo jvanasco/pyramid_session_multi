@@ -2,8 +2,12 @@
 
 Build Status: ![Python package](https://github.com/jvanasco/pyramid_session_multi/workflows/Python%20package/badge.svg)
 
-Provides for making multiple ad-hoc binds of `ISession` compliant Sessions onto
+Provides a framework for making multiple ad-hoc binds of `ISession` compliant Sessions onto
 a `request.session_multi` namespace.
+
+In other words...
+
+Instead of having a single `request.session` configured, you can configure multiple Pyramid session handlers to use `request.session_multi["your_identifier"]`
 
 # Usage
 

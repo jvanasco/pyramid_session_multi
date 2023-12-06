@@ -1,20 +1,17 @@
 # stdlib
 import unittest
 
-# pyramid
+# pypi
 from pyramid import testing
 from pyramid.threadlocal import get_current_request
 
-# package
+# local
 from pyramid_session_multi import new_session_multi
 from pyramid_session_multi import register_session_factory
 from pyramid_session_multi import SessionMultiManager
 from pyramid_session_multi import UnregisteredSession
-
-# local
-from ._utils import discriminator_True
 from ._utils import discriminator_False
-from ._utils import PY3
+from ._utils import discriminator_True
 from ._utils import session_factory_1
 from ._utils import session_factory_2
 from ._utils import session_factory_3
@@ -45,8 +42,6 @@ class Test_Session(unittest.TestCase):
         self.assertIsInstance(request.session_multi, SessionMultiManager)
         session_type_string = (
             "<class 'pyramid.session.BaseCookieSessionFactory.<locals>.CookieSession'>"
-            if PY3
-            else "<class 'pyramid.session.CookieSession'>"
         )
         self.assertEqual(
             str(type(request.session_multi["session_1"])), session_type_string

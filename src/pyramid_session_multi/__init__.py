@@ -120,7 +120,10 @@ class SessionMultiManagerConfig(object):
     It is used to create new managers on each request.
     """
 
-    def __init__(self, config: "Configurator"):
+    def __init__(
+        self,
+        config: "Configurator",
+    ):
         self._session_factories: Dict[str, Callable] = {}
         self._discriminators: Dict[str, Callable] = {}
         self._cookienames: Dict[str, str] = {}
@@ -209,7 +212,10 @@ class SessionMultiManager(dict):
     mountpoints as needed.
     """
 
-    def __init__(self, request: "Request"):
+    def __init__(
+        self,
+        request: "Request",
+    ):
         self.request = request
         manager_config = request.registry.queryUtility(ISessionMultiManagerConfig)
         if manager_config is None:

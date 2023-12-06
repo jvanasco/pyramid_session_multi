@@ -1,12 +1,11 @@
 """pyramid_session_multi installation script.
 """
 import os
+import re  # store version in the init.py
 
-from setuptools import setup
 from setuptools import find_packages
+from setuptools import setup
 
-# store version in the init.py
-import re
 
 HERE = os.path.dirname(__file__)
 
@@ -53,6 +52,7 @@ setup(
         where="src",
     ),
     package_dir={"": "src"},
+    package_data={"pyramid_session_multi": ["py.typed"]},
     include_package_data=True,
     zip_safe=False,
     install_requires=requires,

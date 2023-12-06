@@ -1,26 +1,32 @@
 # stdlib
 import random
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import TYPE_CHECKING
 import unittest
 
-# pyramid
+# pypi
 from pyramid import testing
 from pyramid.request import Request
-import webob.cookies
+from webob.cookies import parse_cookie  # type: ignore[attr-defined]
 
 # package
 from pyramid_session_multi import ISessionMultiManagerConfig
 from pyramid_session_multi import register_session_factory
-
-# local
 from ._utils import discriminator_False
 from ._utils import discriminator_True
 from ._utils import empty_view
 from ._utils import ok_response_factory
-from ._utils import PY3
 from ._utils import re_toolbar_link
 from ._utils import session_factory_1
 from ._utils import session_factory_2
 from ._utils import session_factory_3
+
+if TYPE_CHECKING:
+    from pyramid.config import Configurator
 
 # ==============================================================================
 
@@ -31,30 +37,30 @@ class SessionConfigMixin(object):
     """
 
     # class setup; boolean. should sessions be enabled?
-    enable_sessions = True
+    enable_sessions: bool = True
 
     # class setup; None or list of session namespaces to discriminate
-    discriminate_sessions = None
+    discriminate_sessions: Optional[List[str]] = None
 
     # class setup; dict of session namespace to factory
-    session_to_factory = {
+    session_to_factory: Dict[str, Callable] = {
         "session_a": session_factory_1,
         "session_b": session_factory_2,
         "session_c": session_factory_3,
     }
 
     # class setup; dict of session namespace to discriminator
-    session_to_discriminator = {
+    session_to_discriminator: Dict[str, Callable] = {
         "session_a": discriminator_True,  # pass
         "session_b": discriminator_True,  # pass
         "session_c": discriminator_False,  # fail
     }
 
     # set within `.setup`; pyramid config object; `testing.setUp()`
-    config = None
+    config: "Configurator"
 
     # set within `.configure_sessions`, set this to a list of the enabled namespaces
-    sessions_enabled = None
+    sessions_enabled: List[str]
 
     def configure_sessions(self):
         if self.enable_sessions:
@@ -70,7 +76,7 @@ class SessionConfigMixin(object):
                 register_session_factory(
                     self.config, _namespace, _factory, discriminator=_discriminator
                 )
-                self.sessions_enabled = self.session_to_factory.keys()
+                self.sessions_enabled = list(self.session_to_factory.keys())
         else:
             self.sessions_enabled = []
 
@@ -81,8 +87,8 @@ class _TestPanelConfiguration(unittest.TestCase, SessionConfigMixin):
 
     """
 
-    config = None
-    app = None
+    config: Configurator
+    app: Any
     re_toolbar_link = re_toolbar_link
 
     def setUp(self):
@@ -162,8 +168,8 @@ class TestPanelConfiguration_Configured(_TestPanelConfiguration):
 
 
 class _TestDebugtoolbarPanel(unittest.TestCase, SessionConfigMixin):
-    config = None
-    app = None
+    config: Configurator
+    app: Any
     re_toolbar_link = re_toolbar_link
 
     def _session_view(self, context, request):
@@ -227,10 +233,8 @@ class _TestDebugtoolbarPanel(unittest.TestCase, SessionConfigMixin):
                     # create an invalid cookie
                     _cookies.append("%s=123123123123" % ns)
         if _cookies:
-            _cookies = "; ".join(_cookies)
-            if not PY3:
-                _cookies = _cookies.encode()
-            req1.headers["Cookie"] = _cookies
+            _cookies_str = "; ".join(_cookies)
+            req1.headers["Cookie"] = _cookies_str
         resp_app = req1.get_response(self.app)
         self.assertEqual(resp_app.status_code, 200)
         self.assertIn("http://localhost/_debug_toolbar/", resp_app.text)
@@ -271,14 +275,12 @@ class _TestDebugtoolbarPanel(unittest.TestCase, SessionConfigMixin):
             _cookies.append("pdtb_active=session_multi")
         if "Set-Cookie" in resp_app.headers:
             for _set_cookie_header in resp_app.headers.getall("Set-Cookie"):
-                _cks = webob.cookies.parse_cookie(_set_cookie_header)
+                _cks = parse_cookie(_set_cookie_header)
                 for _ck in _cks:
                     _cookies.append("%s=%s" % (_ck[0].decode(), _ck[1].decode()))
         if _cookies:
-            _cookies = "; ".join(_cookies)
-            if not PY3:
-                _cookies = _cookies.encode()
-            req1.headers["Cookie"] = _cookies
+            _cookies_str = "; ".join(_cookies)
+            req1.headers["Cookie"] = _cookies_str
         resp_app2 = req1.get_response(self.app)
         self.assertEqual(resp_app2.status_code, 200)
         self.assertIn("http://localhost/_debug_toolbar/", resp_app2.text)

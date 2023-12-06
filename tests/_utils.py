@@ -1,8 +1,9 @@
 # stdlib
 import re
-import sys
+from typing import Literal
 
 # pyramid
+from pyramid.request import Request
 from pyramid.response import Response
 from pyramid.session import SignedCookieSessionFactory
 
@@ -10,28 +11,22 @@ from pyramid.session import SignedCookieSessionFactory
 # ==============================================================================
 
 
-PY3 = sys.version_info[0] == 3
-
-
-# ------------------------------------------------------------------------------
-
-
-def discriminator_False(request):
+def discriminator_False(request: Request) -> Literal[False]:
     return False
 
 
-def discriminator_True(request):
+def discriminator_True(request: Request) -> Literal[True]:
     return True
 
 
-def ok_response_factory():
+def ok_response_factory() -> Response:
     return Response(
         "<html><head></head><body>OK</body></html>",
         content_type="text/html",
     )
 
 
-def empty_view(request):
+def empty_view(request: Request) -> Response:
     return ok_response_factory()
 
 
