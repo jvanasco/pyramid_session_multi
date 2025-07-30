@@ -7,6 +7,8 @@ from pyramid.request import Request
 from pyramid.response import Response
 from pyramid.session import SignedCookieSessionFactory
 
+# local
+from ._serializers import JSONSerializerWithDatetime
 
 # ==============================================================================
 
@@ -40,3 +42,8 @@ session_factory_1_duplicate = SignedCookieSessionFactory(
 )
 session_factory_2 = SignedCookieSessionFactory("secret2", cookie_name="session2")
 session_factory_3 = SignedCookieSessionFactory("secret3", cookie_name="session3")
+
+_JSON_SERIALIZER = JSONSerializerWithDatetime()
+session_factory_datetime = SignedCookieSessionFactory(
+    "secret3", cookie_name="sessionDatetime", serializer=_JSON_SERIALIZER
+)

@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 # local
 from .panels.session_multi import SessionMultiDebugPanel
 
-# typing
 if TYPE_CHECKING:
     from pyramid.config import Configurator  # type: ignore[import]
 

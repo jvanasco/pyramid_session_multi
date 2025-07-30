@@ -15,11 +15,11 @@ import zope.interface.interfaces  # type: ignore[import]
 # local
 from ... import ISessionMultiManagerConfig
 
-# typing
 if TYPE_CHECKING:
     from pyramid.interfaces import ISession
     from pyramid.request import Request  # type: ignore[import]
     from pyramid.response import Response  # type: ignore[import]
+
     from ... import SessionMultiManager
 
 # ==============================================================================
@@ -109,15 +109,15 @@ class SessionMultiDebugPanel(DebugPanel):
                 "namespaces": {},
             }
             for namespace in config.namespaces:
-                data["configuration"]["cookies"][
-                    namespace
-                ] = config.get_namespace_cookiename(namespace)
-                data["configuration"]["discriminators"][
-                    namespace
-                ] = config.get_namespace_discriminator(namespace)
-                data["configuration"]["namespaces"][
-                    namespace
-                ] = config.get_namespace_config(namespace)
+                data["configuration"]["cookies"][namespace] = (
+                    config.get_namespace_cookiename(namespace)
+                )
+                data["configuration"]["discriminators"][namespace] = (
+                    config.get_namespace_discriminator(namespace)
+                )
+                data["configuration"]["namespaces"][namespace] = (
+                    config.get_namespace_config(namespace)
+                )
                 data["session_accessed"][namespace] = {
                     "pre": None,  # pre-processing (toolbar)
                     "panel_setup": None,  # during the panel setup?
@@ -183,7 +183,7 @@ class SessionMultiDebugPanel(DebugPanel):
             return session_wrapper
 
         def new_wrapper_b(
-            session_multi: SessionMultiManager,
+            session_multi: "SessionMultiManager",
             _namespace: str,
         ) -> Callable:
             def session_wrapper() -> "ISession":
