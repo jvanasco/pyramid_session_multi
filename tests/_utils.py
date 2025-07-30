@@ -1,11 +1,11 @@
 # stdlib
 import re
-from typing import Literal
 
-# pyramid
+# pypi
 from pyramid.request import Request
 from pyramid.response import Response
 from pyramid.session import SignedCookieSessionFactory
+from typing_extensions import Literal
 
 # local
 from ._serializers import JSONSerializerWithDatetime

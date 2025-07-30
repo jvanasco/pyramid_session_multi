@@ -19,9 +19,9 @@ with open(os.path.join(HERE, "README.md")) as r_file:
 with open(os.path.join(HERE, "src", "pyramid_session_multi", "__init__.py")) as v_file:
     VERSION = re.compile(r'.*__VERSION__ = "(.*?)"', re.S).match(v_file.read()).group(1)  # type: ignore[union-attr]
 
-# pyramid 1.5 == SignedCookieSessionFactory
 requires = [
     "pyramid>=2",
+    "typing_extensions",
     "zope.interface",  # installed by pyramid
 ]
 tests_require = [
