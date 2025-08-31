@@ -4,6 +4,7 @@ from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Tuple
 from typing import TYPE_CHECKING
 
@@ -14,10 +15,12 @@ import zope.interface.interfaces  # type: ignore[import]
 # local
 from ... import ISessionMultiManagerConfig
 
-# typing
 if TYPE_CHECKING:
+    from pyramid.interfaces import ISession
     from pyramid.request import Request  # type: ignore[import]
     from pyramid.response import Response  # type: ignore[import]
+
+    from ... import SessionMultiManager
 
 # ==============================================================================
 
@@ -74,10 +77,14 @@ class SessionMultiDebugPanel(DebugPanel):
         """
         return True
 
-    def __init__(self, request: "Request"):
-        """
-        Initial setup of the `data` payload.
-        """
+    def __init__(
+        self,
+        request: "Request",
+    ):
+        # we need this for processing in the response phase
+        self._request = request
+
+        # Initial setup of the `data` payload.
         data: Dict[str, Any] = {
             "configuration": None,
             "is_active": None,  # not known on `.__init__`
@@ -92,8 +99,6 @@ class SessionMultiDebugPanel(DebugPanel):
         }
         self.data = data
 
-        # we need this for processing in the response phase
-        self._request = request
         # try to stash the configuration info
         try:
             config = request.registry.getUtility(ISessionMultiManagerConfig)
@@ -104,15 +109,15 @@ class SessionMultiDebugPanel(DebugPanel):
                 "namespaces": {},
             }
             for namespace in config.namespaces:
-                data["configuration"]["cookies"][
-                    namespace
-                ] = config.get_namespace_cookiename(namespace)
-                data["configuration"]["discriminators"][
-                    namespace
-                ] = config.get_namespace_discriminator(namespace)
-                data["configuration"]["namespaces"][
-                    namespace
-                ] = config.get_namespace_config(namespace)
+                data["configuration"]["cookies"][namespace] = (
+                    config.get_namespace_cookiename(namespace)
+                )
+                data["configuration"]["discriminators"][namespace] = (
+                    config.get_namespace_discriminator(namespace)
+                )
+                data["configuration"]["namespaces"][namespace] = (
+                    config.get_namespace_config(namespace)
+                )
                 data["session_accessed"][namespace] = {
                     "pre": None,  # pre-processing (toolbar)
                     "panel_setup": None,  # during the panel setup?
@@ -130,7 +135,10 @@ class SessionMultiDebugPanel(DebugPanel):
             # the `ISessionFactory` is not configured
             pass
 
-    def wrap_handler(self, handler: Callable) -> Callable:
+    def wrap_handler(
+        self,
+        handler: Callable,
+    ) -> Callable:
         """
         ``wrap_handler`` allows us to monitor the entire lifecycle of
         the  ``Request``.
@@ -149,7 +157,10 @@ class SessionMultiDebugPanel(DebugPanel):
         """
         data = self.data
 
-        def _process_namespace(_namespace: str, _session):
+        def _process_namespace(
+            _namespace: str,
+            _session: Optional["ISession"],
+        ):
             # helper function
             # a discriminator could return None for the session
             if _session is not None:
@@ -158,18 +169,24 @@ class SessionMultiDebugPanel(DebugPanel):
                     data["session_data"][_namespace]["keys"].add(k)
 
         # define a wrapper for this session
-        def new_wrapper_a(_namespace: str, _session):
+        def new_wrapper_a(
+            _namespace: str,
+            _session: "ISession",
+        ) -> Callable:
             if _session is None:
                 data["session_accessed"][_namespace]["discriminator_fail"] = True
 
-            def session_wrapper():
+            def session_wrapper() -> "ISession":
                 data["session_accessed"][_namespace]["main"] = True
                 return _session
 
             return session_wrapper
 
-        def new_wrapper_b(_namespace: str):
-            def session_wrapper():
+        def new_wrapper_b(
+            session_multi: "SessionMultiManager",
+            _namespace: str,
+        ) -> Callable:
+            def session_wrapper() -> "ISession":
                 # get the session
                 _session = session_multi._discriminated_session(_namespace)
 
@@ -233,14 +250,17 @@ class SessionMultiDebugPanel(DebugPanel):
 
                 else:
                     # generate a new wrapper
-                    session_wrapper = new_wrapper_b(namespace)
+                    session_wrapper = new_wrapper_b(session_multi, namespace)
 
                     # Replace the existing ``ISession`` interface with our wrapper.
                     dict.__setitem__(session_multi, namespace, session_wrapper)
 
         return handler
 
-    def process_response(self, response: "Response") -> None:
+    def process_response(
+        self,
+        response: "Response",
+    ) -> None:
         """
         ``Response`` | "egress"
 
@@ -255,7 +275,10 @@ class SessionMultiDebugPanel(DebugPanel):
         data = self.data
         session_multi = None
 
-        def _process_namespace(_namespace, _session):
+        def _process_namespace(
+            _namespace: str,
+            _session: "ISession",
+        ):
             # helper function
             # a discriminator could return None for the session
             if _session is not None:

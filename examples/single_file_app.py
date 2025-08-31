@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 """
 Directions:
 
@@ -37,7 +35,7 @@ Note there are two set-cookie values:
     Set-Cookie: client_cookie=vMfpxvLwGD9OkGO1Wwek_jke_eohqLOg0fUfCrdJYr0DtTXth3r74CMvvn2chreEGGxokL7gLUyRexCcpEdcrIACSgRetF9HQdftF4EjDa59cQFVAmlkcQJLAXOHcQMu; Path=/; SameSite=Lax
     Set-Cookie: server_cookie=8ae9bf114ddd46d6d20cfe17345f5500f8218febgAJVQEQxNjk2aHZhV252ZDZmUS1mck9rYTUzdUlxcGxXODJtbVcxaDN4OWRUTzYwZ1BkamYyZm8wdE1lMVBqOUVWQU1xAS4=; Path=/; HttpOnly
     Vary: Cookie
-    
+
 Try sending in the values on the next request for the clientside cookie
 
     curl http://0.0.0.0:6543 -I -H "Cookie: client_cookie=vMfpxvLwGD9OkGO1Wwek_jke_eohqLOg0fUfCrdJYr0DtTXth3r74CMvvn2chreEGGxokL7gLUyRexCcpEdcrIACSgRetF9HQdftF4EjDa59cQFVAmlkcQJLAXOHcQMu"
@@ -80,17 +78,22 @@ Because of this, the server_side cookie will not change value unless the
 cookie receives an updated timeout value or an invalidation.
 """
 
-from waitress import serve
+# pypi
 from pyramid.config import Configurator
+from pyramid.request import Request
 from pyramid.response import Response
-
-import pyramid_session_multi
-import pyramid_session_redis
-
 from pyramid.session import SignedCookieSessionFactory
+import pyramid_session_redis
+from waitress import serve
+
+# local
+import pyramid_session_multi
 
 
-def func_invalid_logger(request, raised_exception):
+def func_invalid_logger(
+    request: Request,
+    raised_exception: Exception,
+):
     """called by func_invalid_logger"""
     print("func_invalid_logger")
     print(request, raised_exception)
@@ -106,7 +109,7 @@ factory_serverside = pyramid_session_redis.session_factory_from_settings(
 )
 
 
-def hello_world(request):
+def hello_world(request: Request) -> Response:
     print("Incoming request")
     if "id" not in request.session_multi["clientside"]:
         request.session_multi["clientside"]["id"] = 0

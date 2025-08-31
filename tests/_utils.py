@@ -1,37 +1,34 @@
 # stdlib
 import re
-import sys
 
-# pyramid
+# pypi
+from pyramid.request import Request
 from pyramid.response import Response
 from pyramid.session import SignedCookieSessionFactory
+from typing_extensions import Literal
 
+# local
+from ._serializers import JSONSerializerWithDatetime
 
 # ==============================================================================
 
 
-PY3 = sys.version_info[0] == 3
-
-
-# ------------------------------------------------------------------------------
-
-
-def discriminator_False(request):
+def discriminator_False(request: Request) -> Literal[False]:
     return False
 
 
-def discriminator_True(request):
+def discriminator_True(request: Request) -> Literal[True]:
     return True
 
 
-def ok_response_factory():
+def ok_response_factory() -> Response:
     return Response(
         "<html><head></head><body>OK</body></html>",
         content_type="text/html",
     )
 
 
-def empty_view(request):
+def empty_view(request: Request) -> Response:
     return ok_response_factory()
 
 
@@ -45,3 +42,8 @@ session_factory_1_duplicate = SignedCookieSessionFactory(
 )
 session_factory_2 = SignedCookieSessionFactory("secret2", cookie_name="session2")
 session_factory_3 = SignedCookieSessionFactory("secret3", cookie_name="session3")
+
+_JSON_SERIALIZER = JSONSerializerWithDatetime()
+session_factory_datetime = SignedCookieSessionFactory(
+    "secret3", cookie_name="sessionDatetime", serializer=_JSON_SERIALIZER
+)

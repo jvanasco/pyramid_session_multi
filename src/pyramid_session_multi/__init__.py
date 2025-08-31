@@ -17,7 +17,6 @@ from zope.interface import Attribute
 from zope.interface import implementer
 from zope.interface import Interface
 
-# typing
 if TYPE_CHECKING:
     from pyramid.config import Configurator
     from pyramid.request import Request
@@ -25,7 +24,7 @@ if TYPE_CHECKING:
 # ==============================================================================
 
 
-__VERSION__ = "0.4.0dev"
+__VERSION__ = "0.4.0"
 
 
 # ------------------------------------------------------------------------------
@@ -87,29 +86,33 @@ class ISessionMultiManagerConfig(Interface):
         """dict of namespaces to cookienames""" """:returns: dict"""
     )
 
-    def has_namespace(self, namespace: str):
+    def has_namespace(self, namespace: str) -> bool:  # type: ignore[empty-body]
         """
         is this a valid namespace/session?
         :returns: bool
         """
+        ...
 
-    def get_namespace_config(self, namespace: str):
+    def get_namespace_config(self, namespace: str) -> Optional[Callable]:
         """
         is this a valid namespace/session?
         :returns: a session factory or None
         """
+        ...
 
-    def get_namespace_cookiename(self, namespace: str):
+    def get_namespace_cookiename(self, namespace: str) -> Optional[str]:
         """
         get the namespace cookiename
         :returns: str or None
         """
+        ...
 
-    def get_namespace_discriminator(self, namespace: str):
+    def get_namespace_discriminator(self, namespace: str) -> Optional[Callable]:
         """
         get the namespace discriminator
         :returns: str or None
         """
+        ...
 
 
 @implementer(ISessionMultiManagerConfig)
@@ -120,7 +123,10 @@ class SessionMultiManagerConfig(object):
     It is used to create new managers on each request.
     """
 
-    def __init__(self, config: "Configurator"):
+    def __init__(
+        self,
+        config: "Configurator",
+    ):
         self._session_factories: Dict[str, Callable] = {}
         self._discriminators: Dict[str, Callable] = {}
         self._cookienames: Dict[str, str] = {}
@@ -209,7 +215,10 @@ class SessionMultiManager(dict):
     mountpoints as needed.
     """
 
-    def __init__(self, request: "Request"):
+    def __init__(
+        self,
+        request: "Request",
+    ):
         self.request = request
         manager_config = request.registry.queryUtility(ISessionMultiManagerConfig)
         if manager_config is None:

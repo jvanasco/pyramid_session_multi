@@ -1,14 +1,12 @@
 # stdlib
 import unittest
 
-# pyramid
+# pypi
 from pyramid import testing
 from pyramid.exceptions import ConfigurationError
 
 # package
 from pyramid_session_multi import register_session_factory
-
-# local
 from ._utils import session_factory_1
 from ._utils import session_factory_1_duplicate
 from ._utils import session_factory_2
@@ -22,7 +20,7 @@ class Test_NotIncluded(unittest.TestCase):
     def setUp(self):
         request = testing.DummyRequest()
         self.config = config = testing.setUp(request=request)
-        self.settings = settings = config.registry.settings
+        self.settings = config.registry.settings
 
     def tearDown(self):
         testing.tearDown()
@@ -42,7 +40,7 @@ class Test_Included(unittest.TestCase):
         request = testing.DummyRequest()
         self.config = config = testing.setUp(request=request)
         config.include("pyramid_session_multi")
-        self.settings = settings = config.registry.settings
+        self.settings = config.registry.settings
 
     def tearDown(self):
         testing.tearDown()
