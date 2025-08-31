@@ -7,4 +7,5 @@ include CHANGES.txt
 include LICENSE.txt
 include README.md
 
-recursive-exclude * __pycache__ *.py[cod] .DS_Store
+prune */.mypy_cache
+recursive-exclude * __pycache__ *.py[cod] .DS_Store .mypy_cache
