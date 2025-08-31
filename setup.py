@@ -51,8 +51,12 @@ setup(
         where="src",
     ),
     package_dir={"": "src"},
-    package_data={"pyramid_session_multi": ["py.typed"]},
-    include_package_data=True,
+    package_data={
+        "": [
+            "py.typed",
+            "debugtoolbar/panels/templates/*",
+        ],
+    },
     zip_safe=False,
     install_requires=requires,
     tests_require=requires,
