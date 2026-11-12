@@ -1,6 +1,8 @@
 Unreleased
     Pin the GitHub Actions test tooling for Python 3.7 and 3.8 to versions
     that can seed compatible pip installations.
+    Preserve pkg_resources for Pyramid 2.0 on Python 3.7 through 3.9 by
+    declaring a runtime dependency on setuptools below 82.
 
 1.0.0
     Fix session factory and discriminator lookups on the request manager.
