@@ -23,7 +23,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - run: python -m pip install "tox>=4,<5"
+      # Keep the last virtualenv series with a Python 3.7-compatible pip seed.
+      - name: Install tox for Python 3.7 and 3.8
+        if: ${{ matrix.python == '3.7' || matrix.python == '3.8' }}
+        run: python -m pip install "tox==4.23.2" "virtualenv==20.26.6"
+      - name: Install tox for Python 3.9 and newer
+        if: ${{ matrix.python != '3.7' && matrix.python != '3.8' }}
+        run: python -m pip install "tox>=4,<5"
       - name: Run tests
         env:
           TARGET_PYTHON: ${{ matrix.python }}

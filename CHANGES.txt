@@ -1,3 +1,7 @@
+Unreleased
+    Pin the GitHub Actions test tooling for Python 3.7 and 3.8 to versions
+    that can seed compatible pip installations.
+
 1.0.0
     Fix session factory and discriminator lookups on the request manager.
     Honor callable discriminators with false truth values and skip denied
