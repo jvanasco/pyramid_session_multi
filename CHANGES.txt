@@ -1,9 +1,3 @@
-Unreleased
-    Pin the GitHub Actions test tooling for Python 3.7 and 3.8 to versions
-    that can seed compatible pip installations.
-    Preserve pkg_resources for Pyramid 2.0 on Python 3.7 through 3.9 by
-    declaring a runtime dependency on setuptools below 82.
-
 1.0.0
     Fix session factory and discriminator lookups on the request manager.
     Honor callable discriminators with false truth values and skip denied
@@ -11,6 +5,10 @@ Unreleased
     Consolidate packaging and test configuration and publish HTML coverage
     reports from GitHub Actions.
     Allow GitHub Actions to upload HTML coverage reports from the hidden tox directory.
+    that can seed compatible pip installations.
+    Pin the GitHub Actions test tooling for Python 3.7 and 3.8 to versions
+    Preserve pkg_resources for Pyramid 2.0 on Python 3.7 through 3.9 by
+    declaring a runtime dependency on setuptools below 82.
 
 0.4.0
     typing support
