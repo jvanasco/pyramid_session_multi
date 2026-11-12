@@ -3,7 +3,6 @@ from types import FunctionType
 from typing import Any
 from typing import Callable
 from typing import Dict
-from typing import Iterable
 from typing import List
 from typing import Optional
 from typing import TYPE_CHECKING
@@ -167,17 +166,17 @@ class SessionMultiManagerConfig(object):
 
         self._cookienames[namespace] = cookie_name
         self._session_factories[namespace] = session_factory
-        if discriminator:
+        if discriminator is not None:
             self._discriminators[namespace] = discriminator
         return True
 
     @property
-    def discriminators(self) -> Iterable[str]:
+    def discriminators(self) -> List[str]:
         """list all namespaces with discriminators"""
         return list(self._discriminators.keys())
 
     @property
-    def namespaces(self) -> Iterable[str]:
+    def namespaces(self) -> List[str]:
         """list all possible namespaces"""
         return list(self._session_factories.keys())
 
@@ -218,22 +217,22 @@ class SessionMultiManager(dict):
     def __init__(
         self,
         request: "Request",
-    ):
+    ) -> None:
         self.request = request
         manager_config = request.registry.queryUtility(ISessionMultiManagerConfig)
         if manager_config is None:
             raise AttributeError("No session multi manager registered")
-        self._manager_config = manager_config
+        self._manager_config: SessionMultiManagerConfig = manager_config
 
-    def _discriminated_session(self, namespace: str) -> ISession:
+    def _discriminated_session(self, namespace: str) -> Optional[ISession]:
         """
         private method. this was part of __get_item__ but was pulled out
         for the debugging panel
         """
-        _session = None
+        _session: Optional[ISession] = None
         try:
             _discriminator = self._manager_config._discriminators.get(namespace)
-            if _discriminator:
+            if _discriminator is not None:
                 if not _discriminator(self.request):
                     raise _SessionDiscriminated()
             _session = self._manager_config._session_factories[namespace](self.request)
@@ -241,7 +240,7 @@ class SessionMultiManager(dict):
             pass
         return _session
 
-    def __getitem__(self, namespace: str) -> ISession:
+    def __getitem__(self, namespace: str) -> Optional[ISession]:
         """
         Return the value for key ``namespace`` from the dictionary or raise a
         KeyError if the key doesn't exist
@@ -272,7 +271,7 @@ class SessionMultiManager(dict):
         raise ValueError("May not `del` on a `SessionMultiManager`")
 
     @reify
-    def discriminators(self) -> List[Callable]:
+    def discriminators(self) -> List[str]:
         """list all namespaces with discriminators"""
         return self._manager_config.discriminators
 
@@ -292,7 +291,7 @@ class SessionMultiManager(dict):
 
     def get_namespace_config(self, namespace: str) -> Optional[Callable]:
         """get the namespace config"""
-        return self._manager_config.get_namespace(namespace)
+        return self._manager_config.get_namespace_config(namespace)
 
     def get_namespace_cookiename(self, namespace: str) -> Optional[str]:
         """get the namespace cookiename"""
@@ -300,12 +299,14 @@ class SessionMultiManager(dict):
 
     def get_namespace_discriminator(self, namespace: str) -> Optional[Callable]:
         """get the namespace discriminator"""
-        return self._manager_config.get_discriminator(namespace)
+        return self._manager_config.get_namespace_discriminator(namespace)
 
     def invalidate(self) -> None:
-        """invalidate all possible namespaces"""
+        """Invalidate each session allowed for the current request."""
         for namespace in self.namespaces:
-            self[namespace].invalidate()
+            session = self[namespace]
+            if session is not None:
+                session.invalidate()
 
 
 def new_session_multi(request: "Request") -> SessionMultiManager:

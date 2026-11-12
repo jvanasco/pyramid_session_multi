@@ -1,3 +1,10 @@
+Unreleased
+    Fix session factory and discriminator lookups on the request manager.
+    Honor callable discriminators with false truth values and skip denied
+    namespaces when invalidating sessions.
+    Consolidate packaging and test configuration and publish HTML coverage
+    reports from GitHub Actions.
+
 0.4.0
     typing support
     drop py2
