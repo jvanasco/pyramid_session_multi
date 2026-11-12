@@ -33,6 +33,7 @@ jobs:
         with:
           name: coverage-py${{ matrix.python }}
           path: .tox/py*/tmp/htmlcov/
+          include-hidden-files: true
           if-no-files-found: error
 
   checks:
